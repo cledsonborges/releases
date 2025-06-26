@@ -1,0 +1,6 @@
+backend/releases-backend/venv/
+frontend/releases-frontend/node_modules/
+frontend/releases-frontend/dist/
+.env
+
+
