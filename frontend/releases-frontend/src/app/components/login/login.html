@@ -1,0 +1,63 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Sistema de Releases</h1>
+      <p>Gestão de Regressivos e SLA</p>
+    </div>
+
+    <div class="login-form">
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <div class="form-group">
+          <label for="username">Nome de Usuário</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            [(ngModel)]="username"
+            required
+            placeholder="Digite seu nome de usuário"
+            [disabled]="loading"
+          />
+        </div>
+
+        <div class="error" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-full"
+          [disabled]="loading || !username.trim()"
+        >
+          <span *ngIf="loading" class="spinner"></span>
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="environment-selection">
+      <h3>Ou acesse diretamente:</h3>
+      <div class="environment-buttons">
+        <button
+          class="btn btn-outline"
+          (click)="navigateToEnvironment('homolog')"
+          [disabled]="loading"
+        >
+          Ambiente Homolog
+        </button>
+        <button
+          class="btn btn-outline"
+          (click)="navigateToEnvironment('alpha')"
+          [disabled]="loading"
+        >
+          Ambiente Alpha
+        </button>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      <p>Sistema desenvolvido por <strong>Cledson Alves</strong></p>
+    </div>
+  </div>
+</div>
+

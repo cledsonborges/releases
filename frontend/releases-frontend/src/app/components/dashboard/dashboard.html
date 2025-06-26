@@ -1,0 +1,154 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Sistema de Releases</h1>
+          <p>Bem-vindo, <strong>{{ currentUser?.username || 'Usuário' }}</strong></p>
+        </div>
+        <div class="header-right">
+          <span class="user-role">{{ currentUser?.role === 'admin' ? 'Administrador' : 'Time de Qualidade' }}</span>
+          <button class="btn btn-outline" (click)="logout()">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Navigation Cards -->
+    <div class="navigation-section">
+      <div class="grid grid-3">
+        <div class="nav-card" (click)="navigateToHomolog()">
+          <div class="nav-icon">🏠</div>
+          <h3>Testes Homolog</h3>
+          <p>Acessar ambiente de homologação</p>
+        </div>
+        
+        <div class="nav-card" (click)="navigateToAlpha()">
+          <div class="nav-icon">🚀</div>
+          <h3>Testes Alpha</h3>
+          <p>Acessar ambiente alpha</p>
+        </div>
+        
+        <div class="nav-card" (click)="navigateToAdmin()" *ngIf="isAdmin()">
+          <div class="nav-icon">⚙️</div>
+          <h3>Administrador</h3>
+          <p>Painel administrativo</p>
+        </div>
+        
+        <div class="nav-card" (click)="navigateToReports()">
+          <div class="nav-icon">📊</div>
+          <h3>Relatórios</h3>
+          <p>Visualizar relatórios e métricas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Summary -->
+    <div class="summary-section" *ngIf="dashboardData">
+      <h2>Resumo do Sistema</h2>
+      <div class="grid grid-4">
+        <div class="summary-card">
+          <div class="summary-number">{{ dashboardData.releases?.total || 0 }}</div>
+          <div class="summary-label">Total de Releases</div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-number">{{ dashboardData.sla?.active || 0 }}</div>
+          <div class="summary-label">SLAs Ativos</div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-number">{{ dashboardData.sla?.expired || 0 }}</div>
+          <div class="summary-label">SLAs Vencidos</div>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-number">{{ dashboardData.squads?.active || 0 }}</div>
+          <div class="summary-label">Squads Ativas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Releases -->
+    <div class="releases-section">
+      <div class="section-header">
+        <h2>Releases Recentes</h2>
+        <button class="btn btn-primary" (click)="navigateToAdmin()" *ngIf="isAdmin()">
+          Nova Release
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando releases...</p>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+        <button class="btn btn-secondary" (click)="loadReleases()">Tentar Novamente</button>
+      </div>
+
+      <div *ngIf="!loading && !error && releases.length === 0" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Nenhuma release encontrada</h3>
+        <p>Comece criando uma nova release no painel administrativo.</p>
+        <button class="btn btn-primary" (click)="navigateToAdmin()" *ngIf="isAdmin()">
+          Criar Release
+        </button>
+      </div>
+
+      <div *ngIf="!loading && !error && releases.length > 0" class="releases-grid">
+        <div class="release-card" *ngFor="let release of releases.slice(0, 6)" (click)="navigateToReleaseDetail(release.release_id!)">
+          <div class="release-header">
+            <h3>{{ release.release_name }}</h3>
+            <span class="status-badge" [class]="getStatusClass(release.status)">
+              {{ release.status }}
+            </span>
+          </div>
+          
+          <div class="release-info">
+            <div class="info-item">
+              <span class="label">Ambiente:</span>
+              <span class="value">{{ release.ambiente }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="label">Liberado em:</span>
+              <span class="value">{{ formatDate(release.liberado_em!) }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="label">SLA:</span>
+              <span class="sla-indicator" [class]="getSlaClass(release)">
+                {{ getSlaText(release) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="release-footer">
+            <span class="squads-count">
+              {{ (release.squads_participantes && release.squads_participantes.length) || 0 }} squad(s)
+            </span>
+            <span class="release-type">
+              {{ release.release_exclusiva ? 'Exclusiva' : 'Normal' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Status -->
+    <div class="api-status-section">
+      <h3>Status da API</h3>
+      <div class="api-status">
+        <span class="status-indicator" [class]="apiConnected ? 'connected' : 'disconnected'">
+          {{ apiConnected ? '🟢 Conectado' : '🔴 Desconectado' }}
+        </span>
+        <button class="btn btn-secondary" (click)="testApiConnection()">Testar Conexão</button>
+      </div>
+    </div>
+  </div>
+</div>
+

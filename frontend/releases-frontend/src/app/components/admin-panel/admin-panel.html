@@ -1,0 +1,193 @@
+<div class="admin-container">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Painel Administrativo</h1>
+          <p>Gerenciamento de Releases e Sistema</p>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-outline" (click)="goBack()">← Voltar ao Dashboard</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Ações Rápidas</h2>
+      <div class="actions-grid">
+        <button class="action-btn" (click)="showCreateReleaseForm()">
+          <div class="action-icon">📦</div>
+          <div class="action-text">
+            <h3>Nova Release</h3>
+            <p>Criar uma nova release</p>
+          </div>
+        </button>
+        
+        <button class="action-btn" (click)="initializeDatabase()">
+          <div class="action-icon">🗄️</div>
+          <div class="action-text">
+            <h3>Inicializar BD</h3>
+            <p>Configurar banco de dados</p>
+          </div>
+        </button>
+        
+        <button class="action-btn" (click)="manageSquads()">
+          <div class="action-icon">👥</div>
+          <div class="action-text">
+            <h3>Gerenciar Squads</h3>
+            <p>Adicionar/editar squads</p>
+          </div>
+        </button>
+        
+        <button class="action-btn" (click)="viewReports()">
+          <div class="action-icon">📊</div>
+          <div class="action-text">
+            <h3>Relatórios</h3>
+            <p>Visualizar métricas</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Create Release Form -->
+    <div class="create-release-section" *ngIf="showCreateForm">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>Criar Nova Release</h2>
+          <button class="btn btn-secondary" (click)="hideCreateReleaseForm()">✕</button>
+        </div>
+        
+        <form (ngSubmit)="createRelease()" #releaseForm="ngForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="releaseName">Nome da Release *</label>
+              <input
+                type="text"
+                id="releaseName"
+                name="releaseName"
+                [(ngModel)]="newRelease.release_name"
+                required
+                placeholder="Ex: Release v2.1.0"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="ambiente">Ambiente *</label>
+              <select
+                id="ambiente"
+                name="ambiente"
+                [(ngModel)]="newRelease.ambiente"
+                required
+              >
+                <option value="">Selecione o ambiente</option>
+                <option value="homolog">Homolog</option>
+                <option value="alpha">Alpha</option>
+                <option value="producao">Produção</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="status">Status *</label>
+              <select
+                id="status"
+                name="status"
+                [(ngModel)]="newRelease.status"
+                required
+              >
+                <option value="">Selecione o status</option>
+                <option value="em andamento">Em Andamento</option>
+                <option value="concluído">Concluído</option>
+                <option value="bloqueado">Bloqueado</option>
+                <option value="concluido com bugs">Concluído com Bugs</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="slaHours">SLA (horas)</label>
+              <input
+                type="number"
+                id="slaHours"
+                name="slaHours"
+                [(ngModel)]="newRelease.sla_duration_hours"
+                min="1"
+                max="168"
+                placeholder="Ex: 24"
+              />
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="description">Descrição</label>
+              <textarea
+                id="description"
+                name="description"
+                [(ngModel)]="newRelease.descricao"
+                rows="3"
+                placeholder="Descreva as principais funcionalidades desta release..."
+              ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="releaseExclusiva"
+                  [(ngModel)]="newRelease.release_exclusiva"
+                />
+                Release Exclusiva
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="hideCreateReleaseForm()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="!releaseForm.form.valid || creating"
+            >
+              {{ creating ? 'Criando...' : 'Criar Release' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="system-status">
+      <h2>Status do Sistema</h2>
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-header">
+            <h3>API Backend</h3>
+            <span class="status-indicator" [class]="apiStatus ? 'online' : 'offline'">
+              {{ apiStatus ? '🟢 Online' : '🔴 Offline' }}
+            </span>
+          </div>
+          <button class="btn btn-secondary" (click)="checkApiStatus()">Verificar</button>
+        </div>
+        
+        <div class="status-card">
+          <div class="status-header">
+            <h3>Banco de Dados</h3>
+            <span class="status-indicator" [class]="dbStatus ? 'online' : 'offline'">
+              {{ dbStatus ? '🟢 Conectado' : '🔴 Desconectado' }}
+            </span>
+          </div>
+          <button class="btn btn-secondary" (click)="checkDbStatus()">Verificar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="message" class="alert" [class]="messageType">
+      {{ message }}
+    </div>
+  </div>
+</div>
+
