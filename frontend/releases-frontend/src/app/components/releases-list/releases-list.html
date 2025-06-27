@@ -1,0 +1,280 @@
+<div class="releases-container">
+  <!-- Sidebar com lista de releases -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Releases Disponíveis</h2>
+      <button class="collapse-btn" title="Recolher menu">
+        <i class="icon-chevron-left"></i>
+      </button>
+    </div>
+    
+    <!-- Loading -->
+    <div *ngIf="loading" class="sidebar-loading">
+      <div class="spinner"></div>
+      <p>Carregando releases...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="sidebar-error">
+      <i class="icon-alert-circle"></i>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="loadReleases()">Tentar novamente</button>
+    </div>
+
+    <!-- Lista de releases -->
+    <div *ngIf="!loading && !error" class="releases-list">
+      <div *ngFor="let release of releases" 
+           class="release-item"
+           [class.selected]="selectedRelease?.release_id === release.release_id"
+           (click)="selectRelease(release)">
+        
+        <div class="release-header">
+          <div class="release-name">{{ getReleaseDisplayName(release) }}</div>
+          <div class="release-environment" [class]="'env-' + release.ambiente">
+            {{ release.ambiente.toUpperCase() }}
+          </div>
+        </div>
+        
+        <div class="release-info">
+          <div class="release-version">{{ getReleaseVersion(release) }}</div>
+          <div class="release-number">{{ getReleaseNumber(release) }}</div>
+        </div>
+        
+        <div class="release-meta">
+          <div class="release-date">{{ formatDate(release.created_at) }}</div>
+          <div class="release-status" [class]="'status-' + (release.sla_active ? 'active' : 'inactive')">
+            {{ release.sla_active ? 'SLA Ativo' : 'SLA Inativo' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagem quando não há releases -->
+      <div *ngIf="releases.length === 0" class="no-releases">
+        <i class="icon-inbox"></i>
+        <p>Nenhuma release encontrada</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div class="main-content">
+    <!-- Header da release selecionada -->
+    <div *ngIf="selectedRelease" class="content-header">
+      <div class="header-section">
+        <div class="release-header">
+          <div class="release-title">
+            <h1>{{ getReleaseDisplayName(selectedRelease) }} - Squads que fizeram entregas nessa release</h1>
+            <div class="header-actions">
+              <a href="/homolog" class="nav-link" (click)="goToHomolog()">Homolog</a>
+              <span class="separator">|</span>
+              <a href="#" class="nav-link" (click)="goToReportPortal()">Report Portal</a>
+            </div>
+          </div>
+          
+          <!-- Timer Section -->
+          <div class="timer-section">
+            <div class="timer-label">Tempo restante para o término:</div>
+            <div class="timer-display">{{ getSlaTimeRemaining(selectedRelease) }}</div>
+          </div>
+          
+          <!-- Release Info -->
+          <div class="release-info-row">
+            <div class="version-info">
+              <span class="version-label">{{ getReleaseVersion(selectedRelease) }}</span>
+              <span class="release-number">{{ getReleaseNumber(selectedRelease) }}</span>
+            </div>
+            <div class="qr-section" *ngIf="selectedRelease.qrcode_homolog || selectedRelease.qrcode_alpha">
+              <span class="qr-label">QR Code</span>
+              <span class="version-label">Versão Firebase: {{ selectedRelease.versao_firebase || 'N/A' }}</span>
+              <span class="qr-label">QR Code</span>
+            </div>
+          </div>
+          
+          <!-- Action Buttons (apenas para admin) -->
+          <div class="action-buttons" *ngIf="isAdmin()">
+            <button class="btn btn-secondary" (click)="updateRelease()">
+              <i class="icon-refresh"></i>
+              Atualizar
+            </button>
+            <button class="btn btn-secondary" (click)="exportToExcel()">
+              <i class="icon-download"></i>
+              Exportar Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de squads -->
+      <div class="squads-section">
+        <div class="squad-table-container">
+          <table class="squad-table">
+            <thead>
+              <tr>
+                <th class="squad-col">Squad</th>
+                <th class="module-col">Módulo</th>
+                <th class="details-col">Detalhe da Entrega</th>
+                <th class="responsible-col">Responsável</th>
+                <th class="status-col">Status</th>
+                <th class="actions-col" *ngIf="isAdmin()">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dados de exemplo - substituir por dados reais -->
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">02 - SQUAD ACOMPANHAMENTO DE PV</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtCoreInfraAcompanhamento-v.2.3.2</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">Ajuste de crash na tela de duas vias</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Edilson Coimbra</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-em_andamento">Em andamento</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+              
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">07 - ACOMPANHA CANAIS FÍSICOS SUSTENTABILIDADE</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtAcompanhamento-v3.3.2</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">Massa de incremento</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Edilson Coimbra</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-em_andamento">Em andamento</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">06 - SQUAD VITRINE DE FUNDOS E PREV</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtVitrine-1.5.4</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">nada a destacar</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Marcelo Schramm</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-finalizado">Finalizado</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">09 - SQUAD VITRINE PV</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtVitrine-1.5.4</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">nada a destacar</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Marcelo Schramm</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-finalizado">Finalizado</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">15 - SQUAD ONBOARDING</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtLogin-29.3-alfa</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">Instalação do sistema para qualificar nos novos</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Thiago Sakurai</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-finalizado">Finalizado</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="squad-cell">
+                  <span class="squad-name">23 - SQUAD CONCIERGE DIGITAL (antes DTANO)</span>
+                </td>
+                <td class="module-cell">
+                  <span>xvtConciergeAssistente-v.2.1-release</span>
+                </td>
+                <td class="details-cell">
+                  <span class="details-text">Sobre versão da tela de entrada com novo rel e campo UI</span>
+                </td>
+                <td class="responsible-cell">
+                  <span>Thiago Sakurai</span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-finalizado">Finalizado</span>
+                </td>
+                <td class="actions-cell" *ngIf="isAdmin()">
+                  <button class="btn-action btn-edit">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensagem quando nenhuma release está selecionada -->
+    <div *ngIf="!selectedRelease && !loading" class="no-selection">
+      <i class="icon-arrow-left"></i>
+      <h2>Selecione uma release</h2>
+      <p>Escolha uma release na lista ao lado para visualizar os detalhes e squads.</p>
+    </div>
+  </div>
+</div>
+

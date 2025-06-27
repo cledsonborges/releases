@@ -84,6 +84,10 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  navigateToReleases(): void {
+    this.router.navigate(['/releases']);
+  }
+
   navigateToAdmin(): void {
     this.router.navigate(['/admin']);
   }
