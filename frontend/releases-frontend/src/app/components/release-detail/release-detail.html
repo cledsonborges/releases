@@ -1,1 +1,272 @@
-<p>release-detail works!</p>
+<div class="release-detail-container">
+  <!-- Header -->
+  <div class="header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="icon-arrow-left"></i>
+      Voltar
+    </button>
+    <h1 class="page-title">Detalhes da Release</h1>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-error">
+    <i class="icon-alert-circle"></i>
+    {{ error }}
+    <button class="btn-close" (click)="clearMessages()">×</button>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="alert alert-success">
+    <i class="icon-check-circle"></i>
+    {{ success }}
+    <button class="btn-close" (click)="clearMessages()">×</button>
+  </div>
+
+  <!-- Release Details -->
+  <div *ngIf="!loading && release" class="release-content">
+    
+    <!-- Release Info Card -->
+    <div class="card release-info">
+      <div class="card-header">
+        <h2>{{ release.release_name }}</h2>
+        <div class="status-badge" [style.background-color]="getStatusColor(release.status)">
+          {{ getStatusLabel(release.status) }}
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Ambiente:</label>
+            <span class="environment-badge">{{ release.ambiente }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Criado em:</label>
+            <span>{{ formatDate(release.created_at || '') }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Última atualização:</label>
+            <span>{{ formatDate(release.updated_at || '') }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Release Exclusiva:</label>
+            <span class="badge" [class.badge-yes]="release.release_exclusiva" [class.badge-no]="!release.release_exclusiva">
+              {{ release.release_exclusiva ? 'Sim' : 'Não' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Versões -->
+        <div class="versions-section" *ngIf="release.versao_homolog || release.versao_alpha || release.versao_firebase">
+          <h3>Versões</h3>
+          <div class="versions-grid">
+            <div class="version-item" *ngIf="release.versao_homolog">
+              <label>Homolog:</label>
+              <span>{{ release.versao_homolog }}</span>
+            </div>
+            <div class="version-item" *ngIf="release.versao_alpha">
+              <label>Alpha:</label>
+              <span>{{ release.versao_alpha }}</span>
+            </div>
+            <div class="version-item" *ngIf="release.versao_firebase">
+              <label>Firebase:</label>
+              <span>{{ release.versao_firebase }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Codes -->
+        <div class="qr-section" *ngIf="release.qrcode_homolog || release.qrcode_alpha">
+          <h3>QR Codes</h3>
+          <div class="qr-grid">
+            <div class="qr-item" *ngIf="release.qrcode_homolog">
+              <label>Homolog</label>
+              <img [src]="release.qrcode_homolog" alt="QR Code Homolog" class="qr-code">
+            </div>
+            <div class="qr-item" *ngIf="release.qrcode_alpha">
+              <label>Alpha</label>
+              <img [src]="release.qrcode_alpha" alt="QR Code Alpha" class="qr-code">
+            </div>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="description-section" *ngIf="release.descricao">
+          <h3>Descrição</h3>
+          <p class="description">{{ release.descricao }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA Management Card -->
+    <div class="card sla-card">
+      <div class="card-header">
+        <h2>Controle de SLA</h2>
+        <div class="sla-status" [style.background-color]="getSlaStatusColor(release.sla_status || 'inactive')">
+          {{ getSlaStatusLabel(release.sla_status || 'inactive') }}
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="sla-info">
+          <div class="sla-item">
+            <label>Duração:</label>
+            <span>{{ release.sla_duration_hours || 24 }} horas</span>
+          </div>
+          
+          <div class="sla-item" *ngIf="release.sla_start_time">
+            <label>Iniciado em:</label>
+            <span>{{ formatDate(release.sla_start_time) }}</span>
+          </div>
+          
+          <div class="sla-item" *ngIf="release.sla_active">
+            <label>Status:</label>
+            <span class="sla-active">Ativo</span>
+          </div>
+        </div>
+
+        <!-- SLA Actions -->
+        <div class="sla-actions" *ngIf="isAdmin()">
+          <button class="btn btn-primary" (click)="startSla()" [disabled]="loading || release.sla_active">
+            Iniciar SLA
+          </button>
+          
+          <button class="btn btn-warning" (click)="stopSla()" [disabled]="loading || !release.sla_active">
+            Parar SLA
+          </button>
+          
+          <button class="btn btn-secondary" (click)="showSlaExtension = !showSlaExtension" [disabled]="loading">
+            Estender SLA
+          </button>
+        </div>
+
+        <!-- SLA Extension Form -->
+        <div class="sla-extension" *ngIf="showSlaExtension">
+          <div class="form-group">
+            <label for="slaHours">Horas adicionais:</label>
+            <input type="number" id="slaHours" [(ngModel)]="slaExtensionHours" min="1" max="168" class="form-control">
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" (click)="extendSla()" [disabled]="loading || slaExtensionHours <= 0">
+              Confirmar Extensão
+            </button>
+            <button class="btn btn-secondary" (click)="showSlaExtension = false">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quality Team Status Update Card -->
+    <div class="card status-update-card" *ngIf="isQualityTeam() || isAdmin()">
+      <div class="card-header">
+        <h2>Atualização de Status</h2>
+        <span class="team-badge">Time de Qualidade</span>
+      </div>
+      
+      <div class="card-body">
+        <form (ngSubmit)="updateReleaseStatus()" #statusForm="ngForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="status">Status:</label>
+              <select id="status" [(ngModel)]="editableData.status" name="status" class="form-control" required>
+                <option *ngFor="let option of statusOptions" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="responsavel">Responsável:</label>
+              <input type="text" id="responsavel" [(ngModel)]="editableData.responsavel" name="responsavel" class="form-control" placeholder="Nome do responsável">
+            </div>
+
+            <div class="form-group">
+              <label for="modulo">Módulo:</label>
+              <input type="text" id="modulo" [(ngModel)]="editableData.modulo" name="modulo" class="form-control" placeholder="Módulo testado">
+            </div>
+
+            <div class="form-group">
+              <label for="bugs">Bugs Reportados:</label>
+              <input type="number" id="bugs" [(ngModel)]="editableData.bugs_reportados" name="bugs" class="form-control" min="0">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="detalhe">Detalhe da Entrega:</label>
+            <textarea id="detalhe" [(ngModel)]="editableData.detalhe_entrega" name="detalhe" class="form-control" rows="4" placeholder="Descreva os detalhes dos testes realizados..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="loading || !statusForm.form.valid">
+              <span *ngIf="loading" class="spinner-small"></span>
+              Atualizar Status
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Squads Participantes -->
+    <div class="card squads-card" *ngIf="release.squads_participantes && release.squads_participantes.length > 0">
+      <div class="card-header">
+        <h2>Squads Participantes</h2>
+      </div>
+      
+      <div class="card-body">
+        <div class="squads-list">
+          <div class="squad-item" *ngFor="let squadId of release.squads_participantes">
+            <span class="squad-name">{{ squadId }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Release Notes -->
+    <div class="card release-notes-card" *ngIf="isAdmin()">
+      <div class="card-header">
+        <h2>Release Notes</h2>
+        <button class="btn btn-secondary" (click)="generateReleaseNotes()" [disabled]="loading">
+          Gerar com IA
+        </button>
+      </div>
+      
+      <div class="card-body">
+        <div class="release-notes" *ngIf="release.release_notes; else noReleaseNotes">
+          <pre>{{ release.release_notes }}</pre>
+        </div>
+        <ng-template #noReleaseNotes>
+          <p class="no-content">Nenhuma release note disponível. Clique em "Gerar com IA" para criar automaticamente.</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Links Úteis -->
+    <div class="card links-card" *ngIf="release.link_plano_testes">
+      <div class="card-header">
+        <h2>Links Úteis</h2>
+      </div>
+      
+      <div class="card-body">
+        <div class="links-list">
+          <a [href]="release.link_plano_testes" target="_blank" class="link-item">
+            <i class="icon-external-link"></i>
+            Plano de Testes
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+

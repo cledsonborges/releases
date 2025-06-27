@@ -32,6 +32,11 @@ export interface Release {
   descricao?: string;
   created_at?: string;
   updated_at?: string;
+  release_notes?: string;
+  detalhe_entrega?: string;
+  responsavel?: string;
+  modulo?: string;
+  bugs_reportados?: number;
 }
 
 export interface Squad {
