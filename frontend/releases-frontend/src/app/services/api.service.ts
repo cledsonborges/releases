@@ -42,9 +42,10 @@ export interface Release {
 export interface Squad {
   squad_id?: string;
   squad_name: string;
-  modulos: string[];
+  modulos?: string[];
   responsavel?: string;
-  ativo: boolean;
+  ativo?: boolean;
+  descricao?: string;
   created_at?: string;
   updated_at?: string;
 }

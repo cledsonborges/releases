@@ -4,8 +4,13 @@
     <div class="container">
       <div class="header-content">
         <div class="header-left">
-          <h1>Sistema de Releases</h1>
-          <p>Bem-vindo, <strong>{{ currentUser?.username || 'Usuário' }}</strong></p>
+          <div class="header-logo">
+            <img src="assets/images/logo.png" alt="Ion Itaú" class="app-logo" />
+          </div>
+          <div class="header-text">
+            <h1>Sistema de Releases</h1>
+            <p>Bem-vindo, <strong>{{ currentUser?.username || 'Usuário' }}</strong></p>
+          </div>
         </div>
         <div class="header-right">
           <span class="user-role">{{ currentUser?.role === 'admin' ? 'Administrador' : 'Time de Qualidade' }}</span>
