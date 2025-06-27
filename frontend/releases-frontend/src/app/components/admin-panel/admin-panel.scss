@@ -283,3 +283,183 @@
   }
 }
 
+
+
+// Squads Selection Styles
+.squads-selection {
+  margin-top: 12px;
+  
+  .loading-squads {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    color: var(--text-secondary);
+    
+    .spinner-small {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+  
+  .no-squads {
+    padding: 20px;
+    text-align: center;
+    background: #f8fafc;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .squads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .squad-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    
+    &:hover {
+      border-color: var(--accent-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.selected {
+      border-color: var(--accent-color);
+      background: #f0fdf4;
+      box-shadow: 0 2px 8px rgba(167, 206, 46, 0.2);
+    }
+    
+    .squad-checkbox {
+      margin-top: 2px;
+      
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent-color);
+      }
+    }
+    
+    .squad-info {
+      flex: 1;
+      
+      h4 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0 0 8px 0;
+      }
+      
+      p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 4px 0;
+        line-height: 1.4;
+      }
+    }
+  }
+  
+  .selected-squads {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0 0 12px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .selected-squads-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .selected-squad-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--accent-color);
+      color: var(--primary-color);
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      
+      .remove-squad {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 4px;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+          background: rgba(19, 49, 52, 0.1);
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Responsive adjustments for squads
+@media (max-width: 768px) {
+  .squads-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .selected-squads-list {
+    flex-direction: column;
+    gap: 6px !important;
+    
+    .selected-squad-tag {
+      justify-content: space-between;
+      width: 100%;
+    }
+  }
+}
+
