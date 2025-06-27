@@ -226,7 +226,7 @@
       <div class="card-body">
         <div class="squads-list">
           <div class="squad-item" *ngFor="let squadId of release.squads_participantes">
-            <span class="squad-name">{{ squadId }}</span>
+            <span class="squad-name">{{ getSquadName(squadId) }}</span>
           </div>
         </div>
       </div>
