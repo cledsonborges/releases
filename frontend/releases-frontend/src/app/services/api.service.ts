@@ -56,7 +56,7 @@ export interface User {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:5000/api';
+  private baseUrl = 'https://releases-backend-mk8m9sbj7.vercel.app/api';
 
   constructor(private http: HttpClient) {}
 
