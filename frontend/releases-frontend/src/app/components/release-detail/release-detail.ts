@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Release, Squad } from '../../services/api.service';
+import { ApiService, Release, Squad, ReleaseTestData, TestDataSummary } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-release-detail',
@@ -12,22 +13,23 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './release-detail.html',
   styleUrl: './release-detail.scss'
 })
-export class ReleaseDetailComponent implements OnInit {
+export class ReleaseDetailComponent implements OnInit, OnDestroy {
   release: Release | null = null;
   squads: Squad[] = [];
+  testData: ReleaseTestData[] = [];
+  testDataSummary: TestDataSummary | null = null;
   loading = true;
   error = '';
   success = '';
   
-  // Dados editáveis para o time de qualidade
-  editableData = {
-    status: '',
-    detalhe_entrega: '',
-    responsavel: '',
-    modulo: '',
-    bugs_reportados: 0
-  };
-
+  // Controle de edição
+  editingRows: { [key: string]: boolean } = {};
+  editingData: { [key: string]: Partial<ReleaseTestData> } = {};
+  
+  // Dados do usuário atual
+  currentUser: any = null;
+  currentUserTestData: ReleaseTestData | null = null;
+  
   // Status disponíveis
   statusOptions = [
     { value: 'pendente', label: 'Pendente', color: '#fbbf24' },
@@ -40,6 +42,13 @@ export class ReleaseDetailComponent implements OnInit {
   // Controle de SLA
   slaExtensionHours = 0;
   showSlaExtension = false;
+  
+  // Auto-refresh
+  private refreshSubscription: Subscription | null = null;
+  autoRefreshEnabled = true;
+  
+  // Ambiente atual (homolog ou alpha)
+  currentEnvironment = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -49,20 +58,52 @@ export class ReleaseDetailComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.currentUser = this.authService.getCurrentUser();
+    
     this.route.params.subscribe(params => {
       const releaseId = params['id'];
       if (releaseId) {
         this.loadReleaseDetails(releaseId);
       } else {
-        // Se não há ID, verificar se é uma rota de ambiente (homolog/alpha)
+        // Verificar se é uma rota de ambiente (homolog/alpha)
         const path = this.route.snapshot.url[0]?.path;
         if (path === 'homolog' || path === 'alpha') {
+          this.currentEnvironment = path;
           this.loadEnvironmentReleases(path);
         }
       }
     });
     
     this.loadSquads();
+    this.startAutoRefresh();
+  }
+
+  ngOnDestroy() {
+    this.stopAutoRefresh();
+  }
+
+  startAutoRefresh() {
+    if (this.autoRefreshEnabled) {
+      this.refreshSubscription = interval(30000).subscribe(() => {
+        this.refreshTestData();
+      });
+    }
+  }
+
+  stopAutoRefresh() {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+      this.refreshSubscription = null;
+    }
+  }
+
+  toggleAutoRefresh() {
+    this.autoRefreshEnabled = !this.autoRefreshEnabled;
+    if (this.autoRefreshEnabled) {
+      this.startAutoRefresh();
+    } else {
+      this.stopAutoRefresh();
+    }
   }
 
   loadReleaseDetails(releaseId: string) {
@@ -73,7 +114,8 @@ export class ReleaseDetailComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.release = response.data;
-          this.initializeEditableData();
+          this.currentEnvironment = this.release.ambiente || '';
+          this.loadTestData();
         } else {
           this.error = response.error || 'Erro ao carregar detalhes da release';
         }
@@ -104,7 +146,7 @@ export class ReleaseDetailComponent implements OnInit {
             this.release = environmentReleases.sort((a, b) => 
               new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
             )[0];
-            this.initializeEditableData();
+            this.loadTestData();
           } else {
             this.error = `Nenhuma release encontrada para o ambiente ${environment}`;
           }
@@ -121,6 +163,57 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
+  loadTestData() {
+    if (!this.release?.release_id) return;
+
+    this.apiService.getReleaseTestData(this.release.release_id).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.testData = response.data;
+          this.findCurrentUserTestData();
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao carregar dados de teste:', err);
+      }
+    });
+
+    this.apiService.getTestDataSummary(this.release.release_id).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.testDataSummary = response.data;
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao carregar resumo dos dados de teste:', err);
+      }
+    });
+  }
+
+  refreshTestData() {
+    if (!this.release?.release_id) return;
+    
+    this.apiService.getReleaseTestData(this.release.release_id).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.testData = response.data;
+          this.findCurrentUserTestData();
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao atualizar dados de teste:', err);
+      }
+    });
+  }
+
+  findCurrentUserTestData() {
+    if (this.currentUser && this.testData.length > 0) {
+      this.currentUserTestData = this.testData.find(data => 
+        data.username === this.currentUser.username
+      ) || null;
+    }
+  }
+
   loadSquads() {
     this.apiService.getSquads().subscribe({
       next: (response) => {
@@ -134,33 +227,42 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
-  initializeEditableData() {
-    if (this.release) {
-      this.editableData = {
-        status: this.release.status || 'pendente',
-        detalhe_entrega: (this.release as any).detalhe_entrega || '',
-        responsavel: (this.release as any).responsavel || '',
-        modulo: (this.release as any).modulo || '',
-        bugs_reportados: (this.release as any).bugs_reportados || 0
-      };
-    }
+  startEditing(testData: ReleaseTestData) {
+    if (!testData.test_data_id) return;
+    
+    this.editingRows[testData.test_data_id] = true;
+    this.editingData[testData.test_data_id] = { ...testData };
   }
 
-  updateReleaseStatus() {
-    if (!this.release?.release_id) return;
+  cancelEditing(testData: ReleaseTestData) {
+    if (!testData.test_data_id) return;
+    
+    delete this.editingRows[testData.test_data_id];
+    delete this.editingData[testData.test_data_id];
+  }
+
+  saveTestData(testData: ReleaseTestData) {
+    if (!testData.test_data_id || !this.release?.release_id) return;
+
+    const editedData = this.editingData[testData.test_data_id];
+    if (!editedData) return;
 
     this.loading = true;
     this.error = '';
     this.success = '';
 
-    this.apiService.updateReleaseStatus(this.release.release_id, this.editableData).subscribe({
+    this.apiService.createOrUpdateUserTestData(
+      this.release.release_id, 
+      testData.user_id, 
+      editedData
+    ).subscribe({
       next: (response) => {
         if (response.success) {
-          this.success = 'Status atualizado com sucesso!';
-          // Recarregar os dados da release
-          this.loadReleaseDetails(this.release!.release_id!);
+          this.success = 'Dados salvos com sucesso!';
+          this.cancelEditing(testData);
+          this.loadTestData();
         } else {
-          this.error = response.error || 'Erro ao atualizar status';
+          this.error = response.error || 'Erro ao salvar dados';
         }
         this.loading = false;
       },
@@ -172,6 +274,93 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
+  addNewUserRow() {
+    if (!this.release?.release_id || !this.currentUser) return;
+
+    const newTestData: Partial<ReleaseTestData> = {
+      username: this.currentUser.username,
+      status: 'pendente',
+      modulo: '',
+      responsavel: this.currentUser.username,
+      detalhe_entrega: '',
+      bugs_reportados: 0,
+      tempo_teste_horas: 0,
+      observacoes: '',
+      ambiente: this.currentEnvironment
+    };
+
+    this.loading = true;
+    this.error = '';
+    this.success = '';
+
+    this.apiService.createOrUpdateUserTestData(
+      this.release.release_id,
+      this.currentUser.user_id || this.currentUser.username,
+      newTestData
+    ).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.success = 'Nova linha adicionada com sucesso!';
+          this.loadTestData();
+        } else {
+          this.error = response.error || 'Erro ao adicionar nova linha';
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erro ao conectar com a API';
+        this.loading = false;
+        console.error('Erro:', err);
+      }
+    });
+  }
+
+  deleteTestData(testData: ReleaseTestData) {
+    if (!testData.test_data_id || !this.release?.release_id) return;
+
+    if (!confirm('Tem certeza que deseja deletar esta linha?')) return;
+
+    this.loading = true;
+    this.error = '';
+    this.success = '';
+
+    this.apiService.deleteTestData(this.release.release_id, testData.test_data_id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.success = 'Linha deletada com sucesso!';
+          this.loadTestData();
+        } else {
+          this.error = response.error || 'Erro ao deletar linha';
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erro ao conectar com a API';
+        this.loading = false;
+        console.error('Erro:', err);
+      }
+    });
+  }
+
+  isEditing(testData: ReleaseTestData): boolean {
+    return testData.test_data_id ? this.editingRows[testData.test_data_id] || false : false;
+  }
+
+  getEditingData(testData: ReleaseTestData): Partial<ReleaseTestData> {
+    return testData.test_data_id ? this.editingData[testData.test_data_id] || testData : testData;
+  }
+
+  canEditRow(testData: ReleaseTestData): boolean {
+    if (this.isAdmin()) return true;
+    return testData.username === this.currentUser?.username;
+  }
+
+  canDeleteRow(testData: ReleaseTestData): boolean {
+    if (this.isAdmin()) return true;
+    return testData.username === this.currentUser?.username;
+  }
+
+  // Métodos de SLA (mantidos do componente original)
   startSla() {
     if (!this.release?.release_id) return;
 
@@ -276,6 +465,7 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
+  // Métodos utilitários
   getStatusColor(status: string): string {
     const statusOption = this.statusOptions.find(s => s.value === status);
     return statusOption?.color || '#6b7280';
@@ -329,6 +519,10 @@ export class ReleaseDetailComponent implements OnInit {
   clearMessages() {
     this.error = '';
     this.success = '';
+  }
+
+  trackByTestDataId(index: number, item: ReleaseTestData): string {
+    return item.test_data_id || `${item.user_id}-${index}`;
   }
 }
 

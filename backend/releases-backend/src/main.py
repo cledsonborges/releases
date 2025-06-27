@@ -9,6 +9,7 @@ from src.config import Config
 from src.routes.releases import releases_bp
 from src.routes.squads import squads_bp
 from src.routes.reports import reports_bp
+from src.routes.release_test_data import release_test_data_bp
 
 app = Flask(__name__)
 
@@ -22,6 +23,7 @@ CORS(app, origins="*")
 app.register_blueprint(releases_bp, url_prefix="/api")
 app.register_blueprint(squads_bp, url_prefix="/api")
 app.register_blueprint(reports_bp, url_prefix="/api")
+app.register_blueprint(release_test_data_bp, url_prefix="/api")
 
 # Rota de health check
 @app.route("/api/health", methods=["GET"])
@@ -42,16 +44,19 @@ def init_database():
     """Endpoint para inicializar as tabelas do DynamoDB"""
     try:
         from src.models.dynamodb_models import ReleaseModel, SquadModel, UserModel
+        from src.models.release_test_data_model import ReleaseTestDataModel
 
         # Criar tabelas
         release_model = ReleaseModel()
         squad_model = SquadModel()
         user_model = UserModel()
+        test_data_model = ReleaseTestDataModel()
 
         results = {
             "releases_table": release_model.create_table(),
             "squads_table": squad_model.create_table(),
             "users_table": user_model.create_table(),
+            "test_data_table": test_data_model.create_table(),
         }
 
         # Criar usuário admin padrão
