@@ -321,6 +321,11 @@ export class ReleaseDetailComponent implements OnInit {
     return this.authService.getCurrentUser()?.role === 'admin';
   }
 
+  getSquadName(squadId: string): string {
+    const squad = this.squads.find(s => s.squad_id === squadId);
+    return squad ? squad.squad_name : squadId;
+  }
+
   clearMessages() {
     this.error = '';
     this.success = '';
