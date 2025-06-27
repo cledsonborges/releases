@@ -58,6 +58,34 @@ export interface User {
   ativo: boolean;
 }
 
+export interface ReleaseTestData {
+  test_data_id?: string;
+  release_id: string;
+  user_id: string;
+  username: string;
+  status: string;
+  modulo: string;
+  responsavel: string;
+  detalhe_entrega: string;
+  bugs_reportados: number;
+  tempo_teste_horas: number;
+  observacoes: string;
+  data_inicio_teste?: string;
+  data_fim_teste?: string;
+  ambiente: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TestDataSummary {
+  total_testers: number;
+  status_count: { [key: string]: number };
+  total_bugs: number;
+  total_test_hours: number;
+  modules_tested: string[];
+  testers_by_status: { [key: string]: any[] };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -226,6 +254,41 @@ export class ApiService {
 
   getDashboardSummary(): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(`${this.baseUrl}/reports/dashboard`);
+  }
+
+  // Release Test Data Management
+  getReleaseTestData(releaseId: string): Observable<ApiResponse<ReleaseTestData[]>> {
+    return this.http.get<ApiResponse<ReleaseTestData[]>>(`${this.baseUrl}/releases/${releaseId}/test-data`);
+  }
+
+  getUserTestData(releaseId: string, userId: string): Observable<ApiResponse<ReleaseTestData>> {
+    return this.http.get<ApiResponse<ReleaseTestData>>(`${this.baseUrl}/releases/${releaseId}/test-data/user/${userId}`);
+  }
+
+  createOrUpdateUserTestData(releaseId: string, userId: string, testData: Partial<ReleaseTestData>): Observable<ApiResponse<{test_data_id: string}>> {
+    return this.http.post<ApiResponse<{test_data_id: string}>>(`${this.baseUrl}/releases/${releaseId}/test-data/user/${userId}`, 
+      testData, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getTestDataSummary(releaseId: string): Observable<ApiResponse<TestDataSummary>> {
+    return this.http.get<ApiResponse<TestDataSummary>>(`${this.baseUrl}/releases/${releaseId}/test-data/summary`);
+  }
+
+  deleteTestData(releaseId: string, testDataId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-data/${testDataId}`);
+  }
+
+  deleteAllReleaseTestData(releaseId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-data`);
+  }
+
+  bulkCreateTestData(releaseId: string, testDataList: Partial<ReleaseTestData>[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-data/bulk`, 
+      testDataList, 
+      { headers: this.getHeaders() }
+    );
   }
 }
 
