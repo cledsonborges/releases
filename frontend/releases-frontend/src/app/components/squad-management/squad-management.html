@@ -1,0 +1,231 @@
+<div class="squad-management-container">
+  <!-- Header -->
+  <header class="squad-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Gerenciamento de Squads</h1>
+          <p>Adicionar, editar e gerenciar squads do sistema</p>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-outline" (click)="goBack()">← Voltar ao Admin</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Actions -->
+    <div class="actions-section">
+      <button class="btn btn-primary" (click)="showCreateSquadForm()">
+        <span class="icon">👥</span>
+        Nova Squad
+      </button>
+      <button class="btn btn-secondary" (click)="loadSquads()">
+        <span class="icon">🔄</span>
+        Recarregar
+      </button>
+    </div>
+
+    <!-- Create/Edit Form -->
+    <div class="form-section" *ngIf="showCreateForm">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>{{ editingSquad ? 'Editar Squad' : 'Nova Squad' }}</h2>
+          <button class="btn btn-secondary" (click)="hideCreateSquadForm()">✕</button>
+        </div>
+        
+        <form (ngSubmit)="saveSquad()" #squadForm="ngForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="squadName">Nome da Squad *</label>
+              <input
+                type="text"
+                id="squadName"
+                name="squadName"
+                [(ngModel)]="newSquad.squad_name"
+                required
+                placeholder="Ex: Squad Frontend"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="responsavel">Responsável</label>
+              <input
+                type="text"
+                id="responsavel"
+                name="responsavel"
+                [(ngModel)]="newSquad.responsavel"
+                placeholder="Nome do responsável"
+              />
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="descricao">Descrição</label>
+              <textarea
+                id="descricao"
+                name="descricao"
+                [(ngModel)]="newSquad.descricao"
+                rows="3"
+                placeholder="Descrição da squad e suas responsabilidades..."
+              ></textarea>
+            </div>
+            
+            <!-- Módulos -->
+            <div class="form-group full-width">
+              <label>Módulos</label>
+              <div class="modules-section">
+                <div 
+                  *ngFor="let module of newSquad.modulos; let i = index; trackBy: trackByIndex" 
+                  class="module-item"
+                >
+                  <input
+                    type="text"
+                    [(ngModel)]="newSquad.modulos![i]"
+                    [name]="'module_' + i"
+                    placeholder="Nome do módulo"
+                    class="module-input"
+                  />
+                  <button 
+                    type="button" 
+                    class="btn btn-danger btn-small"
+                    (click)="removeModule(i)"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-small"
+                  (click)="addModule()"
+                >
+                  + Adicionar Módulo
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="ativo"
+                  [(ngModel)]="newSquad.ativo"
+                />
+                Squad Ativa
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="hideCreateSquadForm()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="!squadForm.form.valid"
+            >
+              {{ editingSquad ? 'Atualizar Squad' : 'Criar Squad' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Squads List -->
+    <div class="squads-section">
+      <div class="section-header">
+        <h2>Squads Cadastradas</h2>
+        <span class="squads-count">{{ squads.length }} squad(s)</span>
+      </div>
+
+      <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando squads...</p>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+        <button class="btn btn-secondary" (click)="loadSquads()">Tentar Novamente</button>
+      </div>
+
+      <div *ngIf="!loading && !error && squads.length === 0" class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>Nenhuma squad encontrada</h3>
+        <p>Comece criando uma nova squad.</p>
+        <button class="btn btn-primary" (click)="showCreateSquadForm()">
+          Criar Squad
+        </button>
+      </div>
+
+      <div *ngIf="!loading && !error && squads.length > 0" class="squads-grid">
+        <div class="squad-card" *ngFor="let squad of squads">
+          <div class="squad-header">
+            <h3>{{ squad.squad_name }}</h3>
+            <div class="squad-actions">
+              <button 
+                class="btn btn-small btn-secondary"
+                (click)="editSquad(squad)"
+                title="Editar"
+              >
+                ✏️
+              </button>
+              <button 
+                class="btn btn-small"
+                [class]="squad.ativo ? 'btn-warning' : 'btn-success'"
+                (click)="toggleSquadStatus(squad)"
+                [title]="squad.ativo ? 'Desativar' : 'Ativar'"
+              >
+                {{ squad.ativo ? '⏸️' : '▶️' }}
+              </button>
+              <button 
+                class="btn btn-small btn-danger"
+                (click)="deleteSquad(squad)"
+                title="Deletar"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+          
+          <div class="squad-status">
+            <span class="status-badge" [class]="squad.ativo ? 'active' : 'inactive'">
+              {{ squad.ativo ? 'Ativa' : 'Inativa' }}
+            </span>
+          </div>
+          
+          <div class="squad-info">
+            <div class="info-item" *ngIf="squad.responsavel">
+              <span class="label">Responsável:</span>
+              <span class="value">{{ squad.responsavel }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="squad.descricao">
+              <span class="label">Descrição:</span>
+              <span class="value">{{ squad.descricao }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="squad.modulos && squad.modulos.length > 0">
+              <span class="label">Módulos ({{ squad.modulos.length }}):</span>
+              <div class="modules-list">
+                <span 
+                  *ngFor="let module of squad.modulos" 
+                  class="module-tag"
+                >
+                  {{ module }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="message" class="alert" [class]="'alert-' + messageType">
+      {{ message }}
+    </div>
+  </div>
+</div>
+

@@ -3,7 +3,7 @@ import { LoginComponent } from './components/login/login';
 import { DashboardComponent } from './components/dashboard/dashboard';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel';
 import { ReleaseDetailComponent } from './components/release-detail/release-detail';
-import { ReportsComponent } from './components/reports/reports';
+import { SquadManagementComponent } from './components/squad-management/squad-management';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -11,9 +11,9 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'admin', component: AdminPanelComponent },
   { path: 'release/:id', component: ReleaseDetailComponent },
-  { path: 'reports', component: ReportsComponent },
-  { path: 'homolog', component: ReleaseDetailComponent }, // Reutilizar componente para ambientes
-  { path: 'alpha', component: ReleaseDetailComponent },   // Reutilizar componente para ambientes
+  { path: 'squads', component: SquadManagementComponent },
+  { path: 'homolog', component: ReleaseDetailComponent },
+  { path: 'alpha', component: ReleaseDetailComponent },
   { path: '**', redirectTo: '/login' }
 ];
 

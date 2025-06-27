@@ -15,19 +15,32 @@
     align-items: center;
     
     .header-left {
-      h1 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      
+      .header-logo {
+        .app-logo {
+          height: 40px;
+          width: auto;
+        }
       }
       
-      p {
-        margin: 0;
-        opacity: 0.9;
-        font-size: 16px;
+      .header-text {
+        h1 {
+          font-size: 28px;
+          font-weight: 700;
+          margin: 0 0 4px 0;
+        }
         
-        strong {
-          color: var(--secondary-color);
+        p {
+          margin: 0;
+          opacity: 0.9;
+          font-size: 16px;
+          
+          strong {
+            color: var(--secondary-color);
+          }
         }
       }
     }

@@ -67,6 +67,10 @@ export class AdminPanelComponent implements OnInit {
     });
   }
 
+  navigateToSquads(): void {
+    this.router.navigate(['/squads']);
+  }
+
   goBack(): void {
     this.router.navigate(['/dashboard']);
   }
