@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Release } from '../../services/api.service';
+import { ApiService, Release, Squad } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -19,6 +19,10 @@ export class AdminPanelComponent implements OnInit {
   dbStatus: boolean = false;
   message: string = '';
   messageType: string = '';
+  
+  // Squads data
+  squads: Squad[] = [];
+  loadingSquads: boolean = false;
 
   newRelease: Partial<Release> = {
     release_name: '',
@@ -44,6 +48,23 @@ export class AdminPanelComponent implements OnInit {
   ngOnInit(): void {
     this.checkApiStatus();
     this.checkDbStatus();
+    this.loadSquads();
+  }
+
+  loadSquads(): void {
+    this.loadingSquads = true;
+    this.apiService.getSquads().subscribe({
+      next: (response) => {
+        this.loadingSquads = false;
+        if (response.success && response.data) {
+          this.squads = response.data.filter(squad => squad.ativo);
+        }
+      },
+      error: (error) => {
+        this.loadingSquads = false;
+        console.error('Error loading squads:', error);
+      }
+    });
   }
 
   goBack(): void {
@@ -53,6 +74,7 @@ export class AdminPanelComponent implements OnInit {
   showCreateReleaseForm(): void {
     this.showCreateForm = true;
     this.resetForm();
+    this.loadSquads(); // Recarregar squads ao abrir o formulário
   }
 
   hideCreateReleaseForm(): void {
@@ -72,6 +94,28 @@ export class AdminPanelComponent implements OnInit {
     };
   }
 
+  toggleSquadSelection(squadId: string): void {
+    if (!this.newRelease.squads_participantes) {
+      this.newRelease.squads_participantes = [];
+    }
+
+    const index = this.newRelease.squads_participantes.indexOf(squadId);
+    if (index > -1) {
+      this.newRelease.squads_participantes.splice(index, 1);
+    } else {
+      this.newRelease.squads_participantes.push(squadId);
+    }
+  }
+
+  isSquadSelected(squadId: string): boolean {
+    return this.newRelease.squads_participantes?.includes(squadId) || false;
+  }
+
+  getSquadName(squadId: string): string {
+    const squad = this.squads.find(s => s.squad_id === squadId);
+    return squad?.squad_name || squadId;
+  }
+
   createRelease(): void {
     if (!this.newRelease.release_name || !this.newRelease.ambiente || !this.newRelease.status) {
       this.showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
@@ -85,7 +129,7 @@ export class AdminPanelComponent implements OnInit {
       ...this.newRelease,
       liberado_em: new Date().toISOString(),
       sla_status: 'stopped',
-      squads_participantes: []
+      squads_participantes: this.newRelease.squads_participantes || []
     };
 
     this.apiService.createRelease(releaseData).subscribe({

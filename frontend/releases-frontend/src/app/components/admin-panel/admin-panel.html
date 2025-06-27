@@ -140,6 +140,61 @@
                 Release Exclusiva
               </label>
             </div>
+            
+            <!-- Seção de Squads -->
+            <div class="form-group full-width">
+              <label>Squads Participantes</label>
+              <div class="squads-selection">
+                <div *ngIf="loadingSquads" class="loading-squads">
+                  <div class="spinner-small"></div>
+                  <span>Carregando squads...</span>
+                </div>
+                
+                <div *ngIf="!loadingSquads && squads.length === 0" class="no-squads">
+                  <p>Nenhuma squad disponível. <a href="#" (click)="manageSquads()">Criar squads</a></p>
+                </div>
+                
+                <div *ngIf="!loadingSquads && squads.length > 0" class="squads-grid">
+                  <div 
+                    *ngFor="let squad of squads" 
+                    class="squad-item"
+                    [class.selected]="isSquadSelected(squad.squad_id!)"
+                    (click)="toggleSquadSelection(squad.squad_id!)"
+                  >
+                    <div class="squad-checkbox">
+                      <input 
+                        type="checkbox" 
+                        [checked]="isSquadSelected(squad.squad_id!)"
+                        (change)="toggleSquadSelection(squad.squad_id!)"
+                      />
+                    </div>
+                    <div class="squad-info">
+                      <h4>{{ squad.squad_name }}</h4>
+                      <p *ngIf="squad.modulos && squad.modulos.length > 0">
+                        Módulos: {{ squad.modulos.join(', ') }}
+                      </p>
+                      <p *ngIf="squad.responsavel">
+                        Responsável: {{ squad.responsavel }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Squads Selecionadas -->
+                <div *ngIf="newRelease.squads_participantes && newRelease.squads_participantes.length > 0" class="selected-squads">
+                  <h4>Squads Selecionadas ({{ newRelease.squads_participantes.length }})</h4>
+                  <div class="selected-squads-list">
+                    <span 
+                      *ngFor="let squadId of newRelease.squads_participantes" 
+                      class="selected-squad-tag"
+                    >
+                      {{ getSquadName(squadId) }}
+                      <button type="button" (click)="toggleSquadSelection(squadId)" class="remove-squad">×</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="form-actions">
