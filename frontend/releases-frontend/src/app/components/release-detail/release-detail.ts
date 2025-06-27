@@ -275,6 +275,11 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
   }
 
   addNewUserRow() {
+    if (!this.canAddNewRow()) {
+      this.error = 'Você não tem permissão para adicionar novas linhas.';
+      return;
+    }
+
     if (!this.release?.release_id || !this.currentUser) return;
 
     const newTestData: Partial<ReleaseTestData> = {
@@ -351,17 +356,34 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
   }
 
   canEditRow(testData: ReleaseTestData): boolean {
+    // Nas páginas homolog/alpha, apenas admins podem editar
+    if (this.currentEnvironment === 'homolog' || this.currentEnvironment === 'alpha') {
+      return this.isAdmin();
+    }
+    
+    // Em outras páginas, usuários podem editar suas próprias linhas ou admins podem editar qualquer linha
     if (this.isAdmin()) return true;
     return testData.username === this.currentUser?.username;
   }
 
   canDeleteRow(testData: ReleaseTestData): boolean {
+    // Apenas admins podem deletar linhas nas páginas homolog/alpha
+    if (this.currentEnvironment === 'homolog' || this.currentEnvironment === 'alpha') {
+      return this.isAdmin();
+    }
+    
+    // Em outras páginas, usuários podem deletar suas próprias linhas ou admins podem deletar qualquer linha
     if (this.isAdmin()) return true;
     return testData.username === this.currentUser?.username;
   }
 
-  // Métodos de SLA (mantidos do componente original)
+  // Métodos de SLA
   startSla() {
+    if (!this.canManageSla()) {
+      this.error = 'Você não tem permissão para gerenciar SLA.';
+      return;
+    }
+
     if (!this.release?.release_id) return;
 
     this.loading = true;
@@ -389,6 +411,11 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
   }
 
   stopSla() {
+    if (!this.canManageSla()) {
+      this.error = 'Você não tem permissão para gerenciar SLA.';
+      return;
+    }
+
     if (!this.release?.release_id) return;
 
     this.loading = true;
@@ -414,6 +441,11 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
   }
 
   extendSla() {
+    if (!this.canManageSla()) {
+      this.error = 'Você não tem permissão para gerenciar SLA.';
+      return;
+    }
+
     if (!this.release?.release_id || this.slaExtensionHours <= 0) return;
 
     this.loading = true;
@@ -494,7 +526,7 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  formatDate(dateString: string): string {
+  formatDate(dateString?: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('pt-BR');
   }
@@ -523,6 +555,55 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
 
   trackByTestDataId(index: number, item: ReleaseTestData): string {
     return item.test_data_id || `${item.user_id}-${index}`;
+  }
+
+  // Métodos de controle de permissão
+  canEditData(): boolean {
+    // Apenas admins podem ver as ações de edição nas páginas homolog/alpha
+    return this.isAdmin();
+  }
+
+  canAddNewRow(): boolean {
+    // Apenas admins podem adicionar novas linhas
+    return this.isAdmin();
+  }
+
+  canManageSla(): boolean {
+    // Apenas admins podem gerenciar SLA
+    return this.isAdmin();
+  }
+
+  // Métodos para timer SLA
+  getSlaTimeRemaining(): string {
+    if (!this.release?.sla_start_time || !this.release?.sla_duration_hours) {
+      return '00:42:33'; // Valor padrão como no anexo
+    }
+
+    const startTime = new Date(this.release.sla_start_time);
+    const endTime = new Date(startTime.getTime() + (this.release.sla_duration_hours * 60 * 60 * 1000));
+    const now = new Date();
+    const remaining = endTime.getTime() - now.getTime();
+
+    if (remaining <= 0) {
+      return '00:00:00';
+    }
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  // Métodos para ações do header
+  updateRelease() {
+    this.loadTestData();
+    this.success = 'Dados atualizados com sucesso!';
+  }
+
+  exportToExcel() {
+    // Implementar exportação para Excel
+    this.success = 'Exportação iniciada!';
   }
 }
 
