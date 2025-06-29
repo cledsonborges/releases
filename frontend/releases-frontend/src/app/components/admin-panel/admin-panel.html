@@ -76,18 +76,20 @@
             </div>
             
             <div class="form-group">
-              <label for="squad">Squad *</label>
-              <select
-                id="squad"
-                name="squad"
-                [(ngModel)]="newRelease.squad"
-                required
-              >
-                <option value="">Selecione a squad</option>
-                <option *ngFor="let squad of squads" [value]="squad.squad_name">
-                  {{ squad.squad_name }}
-                </option>
-              </select>
+              <label for="squads">Squads Participantes *</label>
+              <div class="squads-selection">
+                <div class="squad-checkbox" *ngFor="let squad of squads">
+                  <input
+                    type="checkbox"
+                    [id]="'squad-' + squad.squad_name"
+                    [value]="squad.squad_name"
+                    (change)="onSquadChange($event, squad.squad_name)"
+                    [checked]="isSquadSelected(squad.squad_name)"
+                  />
+                  <label [for]="'squad-' + squad.squad_name">{{ squad.squad_name }}</label>
+                </div>
+              </div>
+              <small class="form-help">Selecione uma ou mais squads que participarão desta release</small>
             </div>
             
             <div class="form-group">
