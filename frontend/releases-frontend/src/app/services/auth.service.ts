@@ -47,6 +47,10 @@ export class AuthService {
     return this.currentUserValue !== null;
   }
 
+  isAuthenticated(): boolean {
+    return this.isLoggedIn();
+  }
+
   isAdmin(): boolean {
     const user = this.currentUserValue;
     return user ? user.role === 'admin' : false;

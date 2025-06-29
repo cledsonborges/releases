@@ -1,0 +1,274 @@
+<div class="releases-table-container">
+  <!-- Header -->
+  <header class="table-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Releases - {{ currentView === 'homolog' ? 'Homolog' : 'Alpha' }}</h1>
+          <p>Visualização e edição de status das releases</p>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-outline" (click)="goBack()">← Voltar</button>
+          <button class="btn btn-primary" (click)="goToAdmin()" *ngIf="canEdit()">
+            Painel Admin
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- View Switcher -->
+    <div class="view-switcher">
+      <button 
+        class="view-btn" 
+        [class.active]="currentView === 'homolog'"
+        (click)="switchView('homolog')"
+      >
+        Homolog
+      </button>
+      <button 
+        class="view-btn" 
+        [class.active]="currentView === 'alpha'"
+        (click)="switchView('alpha')"
+      >
+        Alpha
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="statusFilter">Filtrar por Status:</label>
+          <select 
+            id="statusFilter" 
+            [(ngModel)]="statusFilter" 
+            (change)="onFilterChange()"
+          >
+            <option value="">Todos os status</option>
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="squadFilter">Filtrar por Squad:</label>
+          <select 
+            id="squadFilter" 
+            [(ngModel)]="squadFilter" 
+            (change)="onFilterChange()"
+          >
+            <option value="">Todas as squads</option>
+            <option *ngFor="let squad of getUniqueSquads()" [value]="squad">
+              {{ squad }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="filter-actions">
+          <button class="btn btn-secondary" (click)="refreshData()">
+            🔄 Atualizar
+          </button>
+          <button class="btn btn-secondary" (click)="exportToExcel()">
+            📊 Exportar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando releases...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3>Erro ao carregar dados</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="refreshData()">
+        Tentar novamente
+      </button>
+    </div>
+
+    <!-- Releases Table -->
+    <div *ngIf="!loading && !error" class="table-section">
+      <div class="table-info">
+        <p>
+          Mostrando {{ filteredReleases.length }} de {{ releases.length }} releases
+          <span *ngIf="statusFilter || squadFilter"> (filtradas)</span>
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="releases-table">
+          <thead>
+            <tr>
+              <th>Release</th>
+              <th>Squad</th>
+              <th>Versão Homolog</th>
+              <th>Versão Firebase</th>
+              <th>Responsável</th>
+              <th>Status</th>
+              <th>Criado em</th>
+              <th *ngIf="canEdit()">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let release of filteredReleases; trackBy: trackByReleaseId" class="release-row">
+              <!-- Release Name -->
+              <td class="release-name">
+                <strong>{{ release.release_name }}</strong>
+                <small *ngIf="release.descricao">{{ release.descricao }}</small>
+              </td>
+              
+              <!-- Squad -->
+              <td>
+                <span *ngIf="editingReleaseId !== release.release_id || editingField !== 'squad'">
+                  {{ release.squad || '-' }}
+                </span>
+                <input 
+                  *ngIf="editingReleaseId === release.release_id && editingField === 'squad'"
+                  type="text"
+                  [(ngModel)]="editingValue"
+                  class="edit-input"
+                  (keyup.enter)="saveEdit()"
+                  (keyup.escape)="cancelEdit()"
+                  #editInput
+                />
+              </td>
+              
+              <!-- Versão Homolog -->
+              <td>
+                <span *ngIf="editingReleaseId !== release.release_id || editingField !== 'versao_homolog'">
+                  {{ release.versao_homolog || '-' }}
+                </span>
+                <input 
+                  *ngIf="editingReleaseId === release.release_id && editingField === 'versao_homolog'"
+                  type="text"
+                  [(ngModel)]="editingValue"
+                  class="edit-input"
+                  (keyup.enter)="saveEdit()"
+                  (keyup.escape)="cancelEdit()"
+                />
+              </td>
+              
+              <!-- Versão Firebase -->
+              <td>
+                <span *ngIf="editingReleaseId !== release.release_id || editingField !== 'versao_firebase'">
+                  {{ release.versao_firebase || '-' }}
+                </span>
+                <input 
+                  *ngIf="editingReleaseId === release.release_id && editingField === 'versao_firebase'"
+                  type="text"
+                  [(ngModel)]="editingValue"
+                  class="edit-input"
+                  (keyup.enter)="saveEdit()"
+                  (keyup.escape)="cancelEdit()"
+                />
+              </td>
+              
+              <!-- Responsável -->
+              <td>
+                <span *ngIf="editingReleaseId !== release.release_id || editingField !== 'responsavel'">
+                  {{ release.responsavel || '-' }}
+                </span>
+                <input 
+                  *ngIf="editingReleaseId === release.release_id && editingField === 'responsavel'"
+                  type="text"
+                  [(ngModel)]="editingValue"
+                  class="edit-input"
+                  (keyup.enter)="saveEdit()"
+                  (keyup.escape)="cancelEdit()"
+                />
+              </td>
+              
+              <!-- Status -->
+              <td>
+                <span 
+                  *ngIf="editingReleaseId !== release.release_id || editingField !== 'status'"
+                  class="status-badge"
+                  [class]="getStatusClass(release.status || '')"
+                >
+                  {{ release.status || 'Não definido' }}
+                </span>
+                <select 
+                  *ngIf="editingReleaseId === release.release_id && editingField === 'status'"
+                  [(ngModel)]="editingValue"
+                  class="edit-select"
+                  (change)="saveEdit()"
+                >
+                  <option *ngFor="let status of statusOptions" [value]="status">
+                    {{ status }}
+                  </option>
+                </select>
+              </td>
+              
+              <!-- Data de Criação -->
+              <td class="date-cell">
+                {{ formatDate(release.created_at || '') }}
+              </td>
+              
+              <!-- Ações -->
+              <td *ngIf="canEdit()" class="actions-cell">
+                <div class="action-buttons">
+                  <!-- Botões de edição para cada campo -->
+                  <button 
+                    *ngIf="editingReleaseId !== release.release_id"
+                    class="btn-icon edit-btn" 
+                    (click)="startEdit(release.release_id!, 'status', release.status || '')"
+                    title="Editar Status"
+                  >
+                    ✏️
+                  </button>
+                  
+                  <!-- Botões de salvar/cancelar quando editando -->
+                  <div *ngIf="editingReleaseId === release.release_id" class="edit-actions">
+                    <button 
+                      class="btn-icon save-btn" 
+                      (click)="saveEdit()"
+                      title="Salvar"
+                    >
+                      ✅
+                    </button>
+                    <button 
+                      class="btn-icon cancel-btn" 
+                      (click)="cancelEdit()"
+                      title="Cancelar"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredReleases.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>Nenhuma release encontrada</h3>
+        <p *ngIf="statusFilter || squadFilter">
+          Tente ajustar os filtros ou 
+          <button class="link-btn" (click)="statusFilter = ''; squadFilter = ''; onFilterChange()">
+            limpar filtros
+          </button>
+        </p>
+        <p *ngIf="!statusFilter && !squadFilter">
+          Não há releases {{ currentView }} disponíveis no momento.
+        </p>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="message" class="alert" [class]="messageType">
+      {{ message }}
+    </div>
+  </div>
+</div>
+

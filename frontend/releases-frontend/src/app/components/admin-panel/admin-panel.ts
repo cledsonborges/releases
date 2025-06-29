@@ -26,12 +26,12 @@ export class AdminPanelComponent implements OnInit {
 
   newRelease: Partial<Release> = {
     release_name: '',
-    ambiente: '',
-    status: '',
-    descricao: '',
-    sla_duration_hours: 24,
-    release_exclusiva: false,
-    squads_participantes: []
+    squad: '',
+    versao_homolog: '',
+    versao_firebase: '',
+    responsavel: '',
+    status: 'em andamento',
+    descricao: ''
   };
 
   constructor(
@@ -89,12 +89,12 @@ export class AdminPanelComponent implements OnInit {
   resetForm(): void {
     this.newRelease = {
       release_name: '',
-      ambiente: '',
-      status: '',
-      descricao: '',
-      sla_duration_hours: 24,
-      release_exclusiva: false,
-      squads_participantes: []
+      squad: '',
+      versao_homolog: '',
+      versao_firebase: '',
+      responsavel: '',
+      status: 'em andamento',
+      descricao: ''
     };
   }
 
@@ -121,7 +121,8 @@ export class AdminPanelComponent implements OnInit {
   }
 
   createRelease(): void {
-    if (!this.newRelease.release_name || !this.newRelease.ambiente || !this.newRelease.status) {
+    if (!this.newRelease.release_name || !this.newRelease.squad || !this.newRelease.versao_homolog || 
+        !this.newRelease.versao_firebase || !this.newRelease.responsavel || !this.newRelease.status) {
       this.showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
       return;
     }
@@ -132,8 +133,7 @@ export class AdminPanelComponent implements OnInit {
     const releaseData: Partial<Release> = {
       ...this.newRelease,
       liberado_em: new Date().toISOString(),
-      sla_status: 'stopped',
-      squads_participantes: this.newRelease.squads_participantes || []
+      sla_status: 'stopped'
     };
 
     this.apiService.createRelease(releaseData).subscribe({
