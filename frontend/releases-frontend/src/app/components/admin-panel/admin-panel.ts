@@ -23,6 +23,7 @@ export class AdminPanelComponent implements OnInit {
   // Squads data
   squads: Squad[] = [];
   loadingSquads: boolean = false;
+  selectedSquads: string[] = [];
 
   newRelease: Partial<Release> = {
     release_name: '',
@@ -96,34 +97,29 @@ export class AdminPanelComponent implements OnInit {
       status: 'em andamento',
       descricao: ''
     };
+    this.selectedSquads = [];
   }
 
-  toggleSquadSelection(squadId: string): void {
-    if (!this.newRelease.squads_participantes) {
-      this.newRelease.squads_participantes = [];
-    }
-
-    const index = this.newRelease.squads_participantes.indexOf(squadId);
-    if (index > -1) {
-      this.newRelease.squads_participantes.splice(index, 1);
+  // Métodos para gerenciar seleção de squads
+  onSquadChange(event: any, squadName: string): void {
+    if (event.target.checked) {
+      this.selectedSquads.push(squadName);
     } else {
-      this.newRelease.squads_participantes.push(squadId);
+      const index = this.selectedSquads.indexOf(squadName);
+      if (index > -1) {
+        this.selectedSquads.splice(index, 1);
+      }
     }
   }
 
-  isSquadSelected(squadId: string): boolean {
-    return this.newRelease.squads_participantes?.includes(squadId) || false;
-  }
-
-  getSquadName(squadId: string): string {
-    const squad = this.squads.find(s => s.squad_id === squadId);
-    return squad?.squad_name || squadId;
+  isSquadSelected(squadName: string): boolean {
+    return this.selectedSquads.includes(squadName);
   }
 
   createRelease(): void {
-    if (!this.newRelease.release_name || !this.newRelease.squad || !this.newRelease.versao_homolog || 
+    if (!this.newRelease.release_name || this.selectedSquads.length === 0 || !this.newRelease.versao_homolog || 
         !this.newRelease.versao_firebase || !this.newRelease.responsavel || !this.newRelease.status) {
-      this.showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+      this.showMessage('Por favor, preencha todos os campos obrigatórios e selecione pelo menos uma squad.', 'error');
       return;
     }
 
@@ -132,6 +128,8 @@ export class AdminPanelComponent implements OnInit {
     // Preparar dados da release
     const releaseData: Partial<Release> = {
       ...this.newRelease,
+      squads_participantes: this.selectedSquads,
+      squad: this.selectedSquads[0], // Primeira squad como principal para compatibilidade
       liberado_em: new Date().toISOString(),
       sla_status: 'stopped'
     };

@@ -68,7 +68,10 @@ export class ReleaseDetailComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.release = response.data;
-          this.loadSquadDeliveries();
+          // Chamar initializeSquadDeliveries após ter tanto release quanto squads
+          if (this.squads.length > 0) {
+            this.loadSquadDeliveries();
+          }
         } else {
           this.error = response.error || "Erro ao carregar detalhes da release";
         }
@@ -87,7 +90,10 @@ export class ReleaseDetailComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.squads = response.data;
-          this.initializeSquadDeliveries();
+          // Chamar loadSquadDeliveries após ter tanto release quanto squads
+          if (this.release) {
+            this.loadSquadDeliveries();
+          }
         }
       },
       error: (err) => {
@@ -98,24 +104,42 @@ export class ReleaseDetailComponent implements OnInit {
 
   loadSquadDeliveries() {
     if (!this.release?.release_id) return;
-
+    
     this.apiService.getSquadDeliveries(this.release.release_id).subscribe({
       next: (response) => {
-        if (response.success && response.data) {
+        if (response.success && response.data && response.data.length > 0) {
           this.squadDeliveries = response.data;
         } else {
-          this.error = response.error || "Erro ao carregar entregas por squad";
+          // Se não há dados da API, inicializar com base nas squads participantes
+          this.initializeSquadDeliveries();
         }
       },
       error: (err) => {
-        this.error = "Erro ao conectar com a API para entregas por squad";
-        console.error("Erro:", err);
+        console.error("Erro ao carregar entregas por squad:", err);
+        // Em caso de erro, inicializar com base nas squads participantes
+        this.initializeSquadDeliveries();
       }
     });
   }
 
   initializeSquadDeliveries() {
-    // Esta função não será mais necessária para inicializar dados, pois virão da API
+    if (!this.release || !this.squads.length) return;
+    
+    // Usar squads_participantes se disponível, senão usar squad único
+    const participatingSquads = this.release.squads_participantes && this.release.squads_participantes.length > 0 
+      ? this.release.squads_participantes 
+      : this.release.squad ? [this.release.squad] : [];
+    
+    this.squadDeliveries = participatingSquads.map(squadName => {
+      const squad = this.squads.find(s => s.squad_name === squadName);
+      return {
+        squad_id: squad?.squad_id || squadName,
+        squad_name: squadName,
+        detalhe_entrega: this.release?.detalhe_entrega || '',
+        responsavel: this.release?.responsavel || '',
+        status: this.release?.status || 'em_andamento'
+      };
+    });
   }
 
   startEdit(squadId: string, field: string, currentValue: string): void {
