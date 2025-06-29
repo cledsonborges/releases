@@ -232,6 +232,16 @@
 
 .release-row:hover {
   background-color: #f9fafb;
+  cursor: pointer;
+}
+
+.release-row.selected {
+  background-color: #dbeafe;
+  border-left: 4px solid #3b82f6;
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 .release-name strong {

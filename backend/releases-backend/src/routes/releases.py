@@ -282,7 +282,47 @@ def generate_release_notes(release_id):
             'error': str(e)
         }), 500
 
-@releases_bp.route('/releases/<release_id>/status', methods=['PUT'])
+@releases_bp.route("/releases/<release_id>/squad-deliveries", methods=["GET"])
+def get_squad_deliveries(release_id):
+    """Busca as entregas por squad de uma release específica"""
+    try:
+        # Em uma implementação real, você buscaria isso do DynamoDB
+        # Por enquanto, vamos simular alguns dados
+        squad_deliveries = [
+            {
+                "squad_id": "squad-001",
+                "squad_name": "Squad Alpha",
+                "detalhe_entrega": "Ajuste de crash ao clicar duas vezes na aba bolsa",
+                "responsavel": "Edilson Cordeiro",
+                "status": "concluido"
+            },
+            {
+                "squad_id": "squad-002",
+                "squad_name": "Squad Beta",
+                "detalhe_entrega": "Nada a acrescentar.",
+                "responsavel": "",
+                "status": "em_andamento"
+            },
+            {
+                "squad_id": "squad-003",
+                "squad_name": "Squad Gama",
+                "detalhe_entrega": "nada a destacar",
+                "responsavel": "Mariah Schevenin",
+                "status": "concluido"
+            }
+        ]
+        
+        return jsonify({
+            "success": True,
+            "data": squad_deliveries
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@releases_bp.route("/releases/<release_id>/status", methods=["PUT"])
 def update_release_status(release_id):
     """Atualiza status de entrega (para Time de Qualidade)"""
     try:

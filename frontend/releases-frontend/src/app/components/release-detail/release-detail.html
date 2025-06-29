@@ -1,45 +1,18 @@
 <div class="release-detail-container">
-  <!-- Header com timer e informações da release -->
-  <div class="header-section">
-    <div class="release-header">
-      <div class="release-title">
-        <h1>{{ release?.release_name || 'Release' }} - Squads que fizeram entregas nessa release</h1>
-        <div class="header-actions">
-          <a href="/homolog" class="nav-link">Homolog</a>
-          <span class="separator">|</span>
-          <a href="/report-portal" class="nav-link">Report Portal</a>
-        </div>
-      </div>
-      
-      <!-- Timer Section -->
-      <div class="timer-section">
-        <div class="timer-label">Tempo restante para o término:</div>
-        <div class="timer-display">{{ getSlaTimeRemaining() }}</div>
-      </div>
-      
-      <!-- Release Info -->
-      <div class="release-info-row">
-        <div class="version-info">
-          <span class="version-label">{{ release?.versao_homolog || '2.58.0' }}</span>
-          <span class="release-number">Release {{ release?.release_id || '113' }}</span>
-        </div>
-        <div class="qr-section" *ngIf="release?.qrcode_homolog">
-          <span class="qr-label">QR Code</span>
-          <span class="version-label">Versão Firebase: {{ release?.versao_firebase || '2.58.99' }}</span>
-          <span class="qr-label">QR Code</span>
-        </div>
-      </div>
-      
-      <!-- Action Buttons (apenas para admin) -->
-      <div class="action-buttons" *ngIf="isAdmin()">
-        <button class="btn btn-secondary" (click)="updateRelease()">
-          <i class="icon-refresh"></i>
-          Atualizar
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-button" (click)="goBack()">
+          ← Voltar
         </button>
-        <button class="btn btn-secondary" (click)="exportToExcel()">
-          <i class="icon-download"></i>
-          Exportar Excel
-        </button>
+        <div class="release-info" *ngIf="release">
+          <h1>{{ release.release_name }}</h1>
+          <p class="release-subtitle">Squads que fizeram entregas nessa release</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="admin-button">Painel Admin</button>
       </div>
     </div>
   </div>
@@ -47,224 +20,150 @@
   <!-- Loading -->
   <div *ngIf="loading" class="loading">
     <div class="spinner"></div>
-    <p>Carregando...</p>
+    <p>Carregando detalhes da release...</p>
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="alert alert-error">
-    <i class="icon-alert-circle"></i>
-    {{ error }}
-    <button class="btn-close" (click)="clearMessages()">×</button>
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button (click)="clearMessages()">Fechar</button>
   </div>
 
   <!-- Success Message -->
-  <div *ngIf="success" class="alert alert-success">
-    <i class="icon-check-circle"></i>
-    {{ success }}
-    <button class="btn-close" (click)="clearMessages()">×</button>
+  <div *ngIf="success" class="success-message">
+    <p>{{ success }}</p>
+    <button (click)="clearMessages()">Fechar</button>
   </div>
 
-  <!-- Main Content -->
-  <div *ngIf="!loading && release" class="main-content">
-    
-    <!-- Squad Data Table -->
-    <div class="squad-table-container">
-      <table class="squad-table">
+  <!-- Release Details -->
+  <div *ngIf="!loading && release" class="release-details">
+    <!-- Release Info Card -->
+    <div class="release-info-card">
+      <div class="info-item">
+        <span class="label">Release:</span>
+        <span class="value">{{ release.release_name }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Versão Firebase:</span>
+        <span class="value">{{ release.versao_firebase || 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Criado em:</span>
+        <span class="value">{{ formatDate(release.created_at) }}</span>
+      </div>
+    </div>
+
+    <!-- Squad Deliveries Table -->
+    <div class="table-container">
+      <table class="squad-deliveries-table">
         <thead>
           <tr>
-            <th class="squad-col">Squad</th>
-            <th class="module-col">Módulo</th>
-            <th class="details-col">Detalhe da Entrega</th>
-            <th class="responsible-col">Responsável</th>
-            <th class="status-col">Status</th>
-            <th class="actions-col" *ngIf="canEditData()">Ações</th>
+            <th>Squad</th>
+            <th>Módulo</th>
+            <th>Detalhe da Entrega</th>
+            <th>Responsável</th>
+            <th>Status</th>
+            <th *ngIf="canEdit()">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of testData; trackBy: trackByTestDataId" 
-              [class.editing]="isEditing(data)"
-              [class.current-user]="data.username === currentUser?.username">
-            
+          <tr *ngFor="let delivery of squadDeliveries" class="delivery-row">
             <!-- Squad -->
-            <td class="squad-cell">
-              <span class="squad-name">{{ data.responsavel || data.username }}</span>
+            <td class="squad-name">
+              <strong>{{ delivery.squad_name }}</strong>
             </td>
-
+            
             <!-- Módulo -->
-            <td class="module-cell">
-              <input *ngIf="isEditing(data) && canEditRow(data)" 
-                     type="text" 
-                     [(ngModel)]="getEditingData(data).modulo" 
-                     class="form-input"
-                     placeholder="Módulo">
-              <span *ngIf="!isEditing(data) || !canEditRow(data)">{{ data.modulo || '-' }}</span>
+            <td>
+              <span *ngIf="!isEditing(delivery.squad_id, 'modulo')">
+                {{ delivery.squad_name }}
+              </span>
+              <input 
+                *ngIf="isEditing(delivery.squad_id, 'modulo')"
+                type="text" 
+                [(ngModel)]="editingValue"
+                class="edit-input"
+                (keyup.enter)="saveEdit()"
+                (keyup.escape)="cancelEdit()"
+                #editInput>
             </td>
-
+            
             <!-- Detalhe da Entrega -->
-            <td class="details-cell">
-              <textarea *ngIf="isEditing(data) && canEditRow(data)" 
-                        [(ngModel)]="getEditingData(data).detalhe_entrega" 
-                        class="form-textarea"
-                        rows="2"
-                        placeholder="Detalhe da entrega"></textarea>
-              <span *ngIf="!isEditing(data) || !canEditRow(data)" 
-                    class="details-text">{{ data.detalhe_entrega || '-' }}</span>
+            <td class="delivery-detail">
+              <span *ngIf="!isEditing(delivery.squad_id, 'detalhe_entrega')" 
+                    class="detail-text"
+                    (click)="startEdit(delivery.squad_id, 'detalhe_entrega', delivery.detalhe_entrega)">
+                {{ delivery.detalhe_entrega || 'Clique para adicionar detalhes' }}
+              </span>
+              <textarea 
+                *ngIf="isEditing(delivery.squad_id, 'detalhe_entrega')"
+                [(ngModel)]="editingValue"
+                class="edit-textarea"
+                (keyup.enter)="saveEdit()"
+                (keyup.escape)="cancelEdit()"
+                rows="3"
+                #editTextarea></textarea>
             </td>
-
+            
             <!-- Responsável -->
-            <td class="responsible-cell">
-              <input *ngIf="isEditing(data) && canEditRow(data)" 
-                     type="text" 
-                     [(ngModel)]="getEditingData(data).responsavel" 
-                     class="form-input"
-                     placeholder="Responsável">
-              <span *ngIf="!isEditing(data) || !canEditRow(data)">{{ data.responsavel || data.username }}</span>
+            <td>
+              <span *ngIf="!isEditing(delivery.squad_id, 'responsavel')"
+                    class="responsavel-text"
+                    (click)="startEdit(delivery.squad_id, 'responsavel', delivery.responsavel)">
+                {{ delivery.responsavel || 'Clique para adicionar responsável' }}
+              </span>
+              <input 
+                *ngIf="isEditing(delivery.squad_id, 'responsavel')"
+                type="text" 
+                [(ngModel)]="editingValue"
+                class="edit-input"
+                (keyup.enter)="saveEdit()"
+                (keyup.escape)="cancelEdit()"
+                #editResponsavel>
             </td>
-
+            
             <!-- Status -->
             <td class="status-cell">
-              <select *ngIf="isEditing(data) && canEditRow(data)" 
-                      [(ngModel)]="getEditingData(data).status" 
-                      class="form-select status-select"
-                      [class]="'status-' + getEditingData(data).status">
-                <option value="em_andamento">Em andamento</option>
-                <option value="finalizado">Finalizado</option>
-                <option value="pendente">Pendente</option>
-                <option value="com_problemas">Com problemas</option>
-                <option value="bloqueado">Bloqueado</option>
-              </select>
-              <span *ngIf="!isEditing(data) || !canEditRow(data)" 
+              <span *ngIf="!isEditing(delivery.squad_id, 'status')" 
                     class="status-badge"
-                    [class]="'status-' + data.status">
-                {{ getStatusLabel(data.status) }}
+                    [style.background-color]="getStatusColor(delivery.status)"
+                    (click)="startEdit(delivery.squad_id, 'status', delivery.status)">
+                {{ getStatusLabel(delivery.status) }}
               </span>
+              <select 
+                *ngIf="isEditing(delivery.squad_id, 'status')"
+                [(ngModel)]="editingValue"
+                class="edit-select"
+                (change)="saveEdit()"
+                (keyup.escape)="cancelEdit()">
+                <option *ngFor="let option of statusOptions" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
             </td>
-
+            
             <!-- Ações -->
-            <td class="actions-cell" *ngIf="canEditData()">
-              <div class="action-buttons">
-                <!-- Botões de edição -->
-                <div *ngIf="!isEditing(data) && canEditRow(data)" class="edit-actions">
-                  <button class="btn-action btn-edit" 
-                          (click)="startEditing(data)" 
-                          [disabled]="loading"
-                          title="Editar">
-                    <i class="icon-edit"></i>
-                    Editar
-                  </button>
-                </div>
-
-                <!-- Botões de salvamento -->
-                <div *ngIf="isEditing(data) && canEditRow(data)" class="save-actions">
-                  <button class="btn-action btn-save" 
-                          (click)="saveTestData(data)" 
-                          [disabled]="loading"
-                          title="Salvar">
-                    <i class="icon-check"></i>
-                    Salvar
-                  </button>
-                  <button class="btn-action btn-cancel" 
-                          (click)="cancelEditing(data)" 
-                          [disabled]="loading"
-                          title="Cancelar">
-                    <i class="icon-x"></i>
-                    Cancelar
-                  </button>
-                </div>
-
-                <!-- Indicador de somente leitura -->
-                <div *ngIf="!canEditRow(data)" class="readonly-indicator">
-                  <span title="Somente leitura">
-                    <i class="icon-lock"></i>
-                    Somente leitura
-                  </span>
-                </div>
+            <td *ngIf="canEdit()" class="actions-cell">
+              <div *ngIf="isEditing(delivery.squad_id, editingField!)" class="edit-actions">
+                <button class="save-btn" (click)="saveEdit()">Salvar</button>
+                <button class="cancel-btn" (click)="cancelEdit()">Cancelar</button>
               </div>
-            </td>
-          </tr>
-
-          <!-- Linha vazia quando não há dados -->
-          <tr *ngIf="testData.length === 0" class="empty-row">
-            <td [attr.colspan]="canEditData() ? 6 : 5" class="empty-message">
-              <p>Nenhum dado de entrega encontrado.</p>
-              <button *ngIf="isAdmin()" class="btn btn-primary" (click)="addNewUserRow()" [disabled]="loading">
-                Adicionar Primeira Linha
-              </button>
+              <div *ngIf="!isEditing(delivery.squad_id, editingField!)" class="view-actions">
+                <button class="edit-btn" 
+                        (click)="startEdit(delivery.squad_id, 'detalhe_entrega', delivery.detalhe_entrega)">
+                  Editar
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Add New Row Button (apenas para admin) -->
-    <div class="add-row-section" *ngIf="isAdmin() && testData.length > 0">
-      <button class="btn btn-primary" (click)="addNewUserRow()" [disabled]="loading">
-        <i class="icon-plus"></i>
-        Adicionar Nova Linha
-      </button>
-    </div>
-
-  </div>
-
-  <!-- SLA Management Card (apenas para admin) -->
-  <div class="sla-card" *ngIf="isAdmin()">
-    <div class="card-header">
-      <h2>Controle de SLA</h2>
-      <div class="sla-status" [style.background-color]="getSlaStatusColor(release?.sla_status || 'inactive')">
-        {{ getSlaStatusLabel(release?.sla_status || 'inactive') }}
-      </div>
-    </div>
-    
-    <div class="card-body">
-      <div class="sla-info">
-        <div class="sla-item">
-          <label>Duração:</label>
-          <span>{{ release?.sla_duration_hours || 24 }} horas</span>
-        </div>
-        
-        <div class="sla-item" *ngIf="release?.sla_start_time">
-          <label>Iniciado em:</label>
-          <span>{{ formatDate(release?.sla_start_time) }}</span>
-        </div>
-        
-        <div class="sla-item" *ngIf="release?.sla_active">
-          <label>Status:</label>
-          <span class="sla-active">Ativo</span>
-        </div>
-      </div>
-
-      <!-- SLA Actions -->
-      <div class="sla-actions">
-        <button class="btn btn-primary" (click)="startSla()" [disabled]="loading || release?.sla_active">
-          Iniciar SLA
-        </button>
-        
-        <button class="btn btn-warning" (click)="stopSla()" [disabled]="loading || !release?.sla_active">
-          Parar SLA
-        </button>
-        
-        <button class="btn btn-secondary" (click)="showSlaExtension = !showSlaExtension" [disabled]="loading">
-          Estender SLA
-        </button>
-      </div>
-
-      <!-- SLA Extension Form -->
-      <div class="sla-extension" *ngIf="showSlaExtension">
-        <div class="form-group">
-          <label for="slaHours">Horas adicionais:</label>
-          <input type="number" id="slaHours" [(ngModel)]="slaExtensionHours" min="1" max="168" class="form-control">
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" (click)="extendSla()" [disabled]="loading || slaExtensionHours <= 0">
-            Confirmar Extensão
-          </button>
-          <button class="btn btn-secondary" (click)="showSlaExtension = false">
-            Cancelar
-          </button>
-        </div>
-      </div>
+    <!-- Empty State -->
+    <div *ngIf="squadDeliveries.length === 0" class="empty-state">
+      <p>Nenhuma squad encontrada para esta release.</p>
     </div>
   </div>
-
 </div>
 
