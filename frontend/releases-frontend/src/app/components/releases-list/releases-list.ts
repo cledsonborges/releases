@@ -202,10 +202,6 @@ export class ReleasesListComponent implements OnInit, OnDestroy {
     console.log('Atualizar release', this.selectedRelease);
   }
 
-  exportToExcel(): void {
-    console.log('Exportar para Excel', this.selectedRelease);
-  }
-
   trackByReleaseId(index: number, release: Release): string {
     return release.release_id;
   }
