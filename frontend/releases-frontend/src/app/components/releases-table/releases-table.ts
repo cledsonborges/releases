@@ -20,6 +20,9 @@ export class ReleasesTableComponent implements OnInit {
   message: string = '';
   messageType: string = '';
   
+  // Seleção de release
+  selectedRelease: Release | null = null;
+  
   // Filtros
   currentView: 'homolog' | 'alpha' = 'homolog';
   statusFilter: string = '';
@@ -111,6 +114,7 @@ export class ReleasesTableComponent implements OnInit {
 
   switchView(view: 'homolog' | 'alpha'): void {
     this.currentView = view;
+    this.selectedRelease = null; // Limpar seleção ao trocar de view
     this.applyFilters();
     
     // Navegar para a rota correspondente
@@ -119,6 +123,12 @@ export class ReleasesTableComponent implements OnInit {
     } else {
       this.router.navigate(['/homolog']);
     }
+  }
+
+  selectRelease(release: Release): void {
+    this.selectedRelease = release;
+    // Navegar para a tela de detalhes da release
+    this.router.navigate(['/release', release.release_id]);
   }
 
   startEdit(releaseId: string, field: string, currentValue: string): void {

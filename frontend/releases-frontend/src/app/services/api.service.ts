@@ -87,6 +87,14 @@ export interface TestDataSummary {
   testers_by_status: { [key: string]: any[] };
 }
 
+export interface SquadDelivery {
+  squad_id: string;
+  squad_name: string;
+  detalhe_entrega: string;
+  responsavel: string;
+  status: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -255,6 +263,10 @@ export class ApiService {
 
   getDashboardSummary(): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(`${this.baseUrl}/reports/dashboard`);
+  }
+
+  getSquadDeliveries(releaseId: string): Observable<ApiResponse<SquadDelivery[]>> {
+    return this.http.get<ApiResponse<SquadDelivery[]>>(`${this.baseUrl}/releases/${releaseId}/squad-deliveries`);
   }
 
   // Release Test Data Management

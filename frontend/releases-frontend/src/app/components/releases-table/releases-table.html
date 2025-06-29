@@ -118,9 +118,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let release of filteredReleases; trackBy: trackByReleaseId" class="release-row">
+           <tr *ngFor="let release of filteredReleases; trackBy: trackByReleaseId" (click)="selectRelease(release)" class="release-row"> 
+                class="release-row" 
+                (click)="selectRelease(release)"
+                [class.selected]="selectedRelease?.release_id === release.release_id">
               <!-- Release Name -->
-              <td class="release-name">
+              <td class="release-name clickable">
                 <strong>{{ release.release_name }}</strong>
                 <small *ngIf="release.descricao">{{ release.descricao }}</small>
               </td>
