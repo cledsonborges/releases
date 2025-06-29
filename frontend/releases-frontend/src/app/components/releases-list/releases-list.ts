@@ -1,149 +1,214 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { ApiService, Release } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, interval } from 'rxjs';
+import { map, takeWhile } from 'rxjs/operators';
+import { CommonModule } from '@angular/common'; // Importar CommonModule
+
+interface Release {
+  release_id: string;
+  ambiente: string;
+  versao_firebase?: string;
+  qrcode_homolog?: string;
+  qrcode_alpha?: string;
+  created_at: string;
+  sla_active: boolean;
+  sla_end_date: string;
+  // Adicione outras propriedades da release conforme necessário
+}
 
 @Component({
   selector: 'app-releases-list',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './releases-list.html',
-  styleUrl: './releases-list.scss'
+  styleUrls: ['./releases-list.scss'],
+  standalone: true, // Adicionar standalone: true
+  imports: [CommonModule] // Adicionar CommonModule aos imports
 })
-export class ReleasesListComponent implements OnInit {
+export class ReleasesListComponent implements OnInit, OnDestroy {
   releases: Release[] = [];
   selectedRelease: Release | null = null;
-  loading = true;
-  error = '';
-  dropdownOpen = false;
-  
-  // Dados do usuário atual
-  currentUser: any = null;
+  sidebarCollapsed: boolean = false;
+  loading: boolean = true;
+  error: string | null = null;
+  private timerSubscription: Subscription | undefined;
 
-  constructor(
-    private router: Router,
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
+  constructor(private route: ActivatedRoute, private router: Router) { }
 
-  ngOnInit() {
-    this.currentUser = this.authService.getCurrentUser();
+  ngOnInit(): void {
     this.loadReleases();
+    this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
   }
 
-  loadReleases() {
+  ngOnDestroy(): void {
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
+  }
+
+  loadReleases(): void {
     this.loading = true;
-    this.error = '';
-    
-    this.apiService.getReleases().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.releases = response.data.sort((a, b) => 
-            new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
-          );
-          
-          // Selecionar a primeira release por padrão
-          if (this.releases.length > 0) {
-            this.selectRelease(this.releases[0]);
-          }
-        } else {
-          this.error = response.error || 'Erro ao carregar releases';
+    this.error = null;
+    // Simula o carregamento de dados de uma API
+    setTimeout(() => {
+      this.releases = [
+        {
+          release_id: 'R0001',
+          ambiente: 'homolog',
+          versao_firebase: 'v2.3.1',
+          qrcode_homolog: 'url_qrcode_homolog_r0001',
+          created_at: '2025-06-27T10:00:00Z',
+          sla_active: true,
+          sla_end_date: '2025-06-30T10:00:00Z'
+        },
+        {
+          release_id: 'R0000',
+          ambiente: 'homolog',
+          versao_firebase: 'v2.3.0',
+          qrcode_homolog: 'url_qrcode_homolog_r0000',
+          created_at: '2025-06-27T09:00:00Z',
+          sla_active: false,
+          sla_end_date: '2025-06-28T09:00:00Z'
+        },
+        {
+          release_id: 'teste',
+          ambiente: 'homolog',
+          versao_firebase: 'v2.2.0',
+          qrcode_homolog: 'url_qrcode_homolog_teste',
+          created_at: '2025-06-27T08:00:00Z',
+          sla_active: true,
+          sla_end_date: '2025-07-01T08:00:00Z'
+        },
+        {
+          release_id: 'PROD001',
+          ambiente: 'alpha',
+          versao_firebase: 'v2.1.0',
+          qrcode_alpha: 'url_qrcode_alpha_prod001',
+          created_at: '2025-06-26T15:00:00Z',
+          sla_active: true,
+          sla_end_date: '2025-06-29T15:00:00Z'
+        },
+        {
+          release_id: 'MAIN',
+          ambiente: 'producao',
+          versao_firebase: 'v1.5.2',
+          created_at: '2025-06-25T14:00:00Z',
+          sla_active: true,
+          sla_end_date: '2025-06-28T14:00:00Z'
         }
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Erro ao conectar com a API';
-        this.loading = false;
-        console.error('Erro:', err);
-      }
-    });
+      ];
+      this.loading = false;
+      // Seleciona a primeira release por padrão ou a que está na URL
+      this.route.paramMap.subscribe(params => {
+        const releaseId = params.get('id');
+        if (releaseId) {
+          this.selectedRelease = this.releases.find(r => r.release_id === releaseId) || null;
+        } else if (this.releases.length > 0) {
+          this.selectedRelease = this.releases[0];
+        }
+        this.startTimer();
+      });
+    }, 1000);
   }
 
-  selectRelease(release: Release) {
+  selectRelease(release: Release): void {
     this.selectedRelease = release;
-    this.dropdownOpen = false; // Fechar dropdown após seleção
+    this.router.navigate(['/homolog', release.release_id]);
+    this.startTimer();
+    // Colapsa a sidebar em mobile após a seleção
+    if (window.innerWidth <= 768) {
+      this.sidebarCollapsed = true;
+      localStorage.setItem('sidebarCollapsed', 'true');
+    }
   }
 
-  toggleDropdown() {
-    this.dropdownOpen = !this.dropdownOpen;
-  }
-
-  goBack() {
-    this.router.navigate(['/dashboard']);
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed.toString());
   }
 
   getReleaseDisplayName(release: Release): string {
-    return `[${release.ambiente?.toUpperCase()}]-${release.release_name}`;
+    return `[${release.ambiente.toUpperCase()}]-${release.release_id}`;
   }
 
   getReleaseVersion(release: Release): string {
-    if (release.ambiente === 'homolog') {
-      return release.versao_homolog || 'N/A';
-    } else if (release.ambiente === 'alpha') {
-      return release.versao_alpha || 'N/A';
+    if (release.ambiente === 'homolog' && release.qrcode_homolog) {
+      return `Release ${release.qrcode_homolog.split('/').pop()}`;
+    } else if (release.ambiente === 'alpha' && release.qrcode_alpha) {
+      return `Release ${release.qrcode_alpha.split('/').pop()}`;
     }
-    return release.versao_homolog || release.versao_alpha || 'N/A';
-  }
-
-  getReleaseNumber(release: Release): string {
     return `Release ${release.release_id}`;
   }
 
-  formatDate(dateString?: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  getReleaseNumber(release: Release): string {
+    // Lógica para obter o número da release, se aplicável
+    return `Release ${this.releases.indexOf(release) + 1}`;
+  }
+
+  formatDate(dateString: string): string {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(dateString).toLocaleDateString('pt-BR', options);
   }
 
   getSlaTimeRemaining(release: Release): string {
-    if (!release.sla_start_time || !release.sla_duration_hours) {
-      return '00:42:33'; // Valor padrão
+    if (!release.sla_active) {
+      return 'SLA Inativo';
+    }
+    const now = new Date().getTime();
+    const endDate = new Date(release.sla_end_date).getTime();
+    const timeLeft = endDate - now;
+
+    if (timeLeft <= 0) {
+      return 'Expirado';
     }
 
-    const startTime = new Date(release.sla_start_time);
-    const endTime = new Date(startTime.getTime() + (release.sla_duration_hours * 60 * 60 * 1000));
-    const now = new Date();
-    const remaining = endTime.getTime() - now.getTime();
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-    if (remaining <= 0) {
-      return '00:00:00';
-    }
-
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
 
-  isQualityTeam(): boolean {
-    return this.authService.getCurrentUser()?.role === 'quality_team';
+  startTimer(): void {
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
+    if (this.selectedRelease && this.selectedRelease.sla_active) {
+      this.timerSubscription = interval(1000).pipe(
+        map(() => this.getSlaTimeRemaining(this.selectedRelease!)),
+        takeWhile(time => time !== 'Expirado', true)
+      ).subscribe();
+    }
   }
 
   isAdmin(): boolean {
-    return this.authService.getCurrentUser()?.role === 'admin';
+    // Lógica para verificar se o usuário é admin
+    return true; // Para fins de demonstração
   }
 
-  goToHomolog() {
+  goBack(): void {
+    window.history.back();
+  }
+
+  goToHomolog(): void {
     this.router.navigate(['/homolog']);
   }
 
-  goToReportPortal() {
-    // Implementar navegação para Report Portal
-    window.open('https://report-portal-url.com', '_blank');
+  goToReportPortal(): void {
+    // Lógica para navegar para o portal de relatórios
+    console.log('Navegar para o Report Portal');
   }
 
-  updateRelease() {
-    if (this.selectedRelease) {
-      this.loadReleases();
-    }
+  updateRelease(): void {
+    console.log('Atualizar release', this.selectedRelease);
   }
 
-  exportToExcel() {
-    if (this.selectedRelease) {
-      // Implementar exportação para Excel
-      console.log('Exportando para Excel:', this.selectedRelease);
-    }
+  exportToExcel(): void {
+    console.log('Exportar para Excel', this.selectedRelease);
+  }
+
+  trackByReleaseId(index: number, release: Release): string {
+    return release.release_id;
   }
 }
+
 
