@@ -26,7 +26,7 @@ export class ReleasesTableComponent implements OnInit {
   // Filtros
   currentView: 'homolog' | 'alpha' = 'homolog';
   statusFilter: string = '';
-  squadFilter: string = '';
+  releaseFilter: string = '';
   
   // Edição inline
   editingReleaseId: string | null = null;
@@ -100,11 +100,11 @@ export class ReleasesTableComponent implements OnInit {
       // Filtro por status
       const matchesStatus = !this.statusFilter || release.status === this.statusFilter;
       
-      // Filtro por squad
-      const matchesSquad = !this.squadFilter || 
-        (release.squad && release.squad.toLowerCase().includes(this.squadFilter.toLowerCase()));
+      // Filtro por release
+      const matchesRelease = !this.releaseFilter || 
+        (release.release_name && release.release_name.toLowerCase().includes(this.releaseFilter.toLowerCase()));
       
-      return matchesView && matchesStatus && matchesSquad;
+      return matchesView && matchesStatus && matchesRelease;
     });
   }
 
@@ -229,11 +229,6 @@ export class ReleasesTableComponent implements OnInit {
     this.loadReleases();
   }
 
-  exportToExcel(): void {
-    // Implementar exportação para Excel
-    this.showMessage('Funcionalidade de exportação em desenvolvimento', 'info');
-  }
-
   showMessage(text: string, type: string): void {
     this.message = text;
     this.messageType = type;
@@ -245,12 +240,12 @@ export class ReleasesTableComponent implements OnInit {
     }, 5000);
   }
 
-  getUniqueSquads(): string[] {
-    const squads = this.releases
-      .map(r => r.squad)
-      .filter(squad => squad && squad.trim() !== '')
-      .filter((squad, index, arr) => arr.indexOf(squad) === index);
-    return squads as string[];
+  getUniqueReleases(): string[] {
+    const releases = this.releases
+      .map(r => r.release_name)
+      .filter(release => release && release.trim() !== '')
+      .filter((release, index, arr) => arr.indexOf(release) === index);
+    return releases as string[];
   }
 
   trackByReleaseId(index: number, release: Release): string {

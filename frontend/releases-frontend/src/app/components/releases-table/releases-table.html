@@ -47,22 +47,21 @@
             (change)="onFilterChange()"
           >
             <option value="">Todos os status</option>
-            <option *ngFor="let status of statusOptions" [value]="status">
-              {{ status }}
-            </option>
+            <option value="em andamento">Em Andamento</option>
+            <option value="concluído">Concluído</option>
           </select>
         </div>
         
         <div class="filter-group">
-          <label for="squadFilter">Filtrar por Squad:</label>
+          <label for="releaseFilter">Filtrar por Release:</label>
           <select 
-            id="squadFilter" 
-            [(ngModel)]="squadFilter" 
+            id="releaseFilter" 
+            [(ngModel)]="releaseFilter" 
             (change)="onFilterChange()"
           >
-            <option value="">Todas as squads</option>
-            <option *ngFor="let squad of getUniqueSquads()" [value]="squad">
-              {{ squad }}
+            <option value="">Todas as releases</option>
+            <option *ngFor="let release of getUniqueReleases()" [value]="release">
+              {{ release }}
             </option>
           </select>
         </div>
@@ -70,9 +69,6 @@
         <div class="filter-actions">
           <button class="btn btn-secondary" (click)="refreshData()">
             🔄 Atualizar
-          </button>
-          <button class="btn btn-secondary" (click)="exportToExcel()">
-            📊 Exportar
           </button>
         </div>
       </div>
@@ -99,7 +95,7 @@
       <div class="table-info">
         <p>
           Mostrando {{ filteredReleases.length }} de {{ releases.length }} releases
-          <span *ngIf="statusFilter || squadFilter"> (filtradas)</span>
+          <span *ngIf="statusFilter || releaseFilter"> (filtradas)</span>
         </p>
       </div>
 
@@ -256,13 +252,13 @@
       <div *ngIf="filteredReleases.length === 0" class="empty-state">
         <div class="empty-icon">📦</div>
         <h3>Nenhuma release encontrada</h3>
-        <p *ngIf="statusFilter || squadFilter">
+        <p *ngIf="statusFilter || releaseFilter">
           Tente ajustar os filtros ou 
-          <button class="link-btn" (click)="statusFilter = ''; squadFilter = ''; onFilterChange()">
+          <button class="link-btn" (click)="statusFilter = ''; releaseFilter = ''; onFilterChange()">
             limpar filtros
           </button>
         </p>
-        <p *ngIf="!statusFilter && !squadFilter">
+        <p *ngIf="!statusFilter && !releaseFilter">
           Não há releases {{ currentView }} disponíveis no momento.
         </p>
       </div>
