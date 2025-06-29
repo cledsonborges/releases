@@ -23,11 +23,11 @@ Sistema completo para gerenciamento de releases, controle de SLA e acompanhament
 
 ### 🎯 Gerenciamento de Releases
 - CRUD completo de releases
+- **Suporte a múltiplas squads por release**
 - Controle de SLA (iniciar, parar, estender)
 - Suporte a múltiplos ambientes (Homolog, Alpha, Produção)
 - Geração automática de QR codes
 - Release notes com IA (Gemini)
-
 ### 📈 Sistema de Relatórios
 - Métricas de performance
 - Acompanhamento de SLAs
@@ -42,12 +42,14 @@ Sistema completo para gerenciamento de releases, controle de SLA e acompanhament
 - **Gemini AI**: Geração de release notes
 - **QR Code**: Geração de códigos QR
 - **CORS**: Suporte a requisições cross-origin
+- **Suporte a múltiplas squads**: Modelagem de dados e rotas atualizadas para permitir múltiplas squads por release.
 
 ### Frontend
 - **Angular 18**: Framework frontend moderno
 - **TypeScript**: Linguagem tipada
 - **SCSS**: Pré-processador CSS
 - **Design Responsivo**: Compatível com mobile e desktop
+- **Filtros Aprimorados**: Filtro de status ajustado (apenas 'Em Andamento' e 'Concluído'), novo filtro por Release e remoção dos botões de exportação.
 
 ### Integração
 - **API REST**: Comunicação entre frontend e backend
@@ -168,11 +170,14 @@ FLASK_DEBUG=True
 
 ### 3. Gerenciamento de Releases
 - Criação com formulário completo
+- **Seleção de múltiplas squads por release**
 - Edição de releases existentes
 - Controle de status
 - Gerenciamento de SLA
 - Geração de QR codes
 - Release notes automáticas
+- **Filtros aprimorados por status (Em Andamento, Concluído) e por Release**
+- **Remoção dos botões de exportação**
 
 ### 4. Controle de SLA
 - Iniciar/parar cronômetro
