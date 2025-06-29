@@ -76,18 +76,54 @@
             </div>
             
             <div class="form-group">
-              <label for="ambiente">Ambiente *</label>
+              <label for="squad">Squad *</label>
               <select
-                id="ambiente"
-                name="ambiente"
-                [(ngModel)]="newRelease.ambiente"
+                id="squad"
+                name="squad"
+                [(ngModel)]="newRelease.squad"
                 required
               >
-                <option value="">Selecione o ambiente</option>
-                <option value="homolog">Homolog</option>
-                <option value="alpha">Alpha</option>
-                <option value="producao">Produção</option>
+                <option value="">Selecione a squad</option>
+                <option *ngFor="let squad of squads" [value]="squad.squad_name">
+                  {{ squad.squad_name }}
+                </option>
               </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="versaoHomolog">Versão Homolog *</label>
+              <input
+                type="text"
+                id="versaoHomolog"
+                name="versaoHomolog"
+                [(ngModel)]="newRelease.versao_homolog"
+                required
+                placeholder="Ex: v2.1.0-homolog"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="versaoFirebase">Versão Firebase *</label>
+              <input
+                type="text"
+                id="versaoFirebase"
+                name="versaoFirebase"
+                [(ngModel)]="newRelease.versao_firebase"
+                required
+                placeholder="Ex: v2.1.0-firebase"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="responsavel">Responsável *</label>
+              <input
+                type="text"
+                id="responsavel"
+                name="responsavel"
+                [(ngModel)]="newRelease.responsavel"
+                required
+                placeholder="Nome do responsável"
+              />
             </div>
             
             <div class="form-group">
@@ -106,19 +142,6 @@
               </select>
             </div>
             
-            <div class="form-group">
-              <label for="slaHours">SLA (horas)</label>
-              <input
-                type="number"
-                id="slaHours"
-                name="slaHours"
-                [(ngModel)]="newRelease.sla_duration_hours"
-                min="1"
-                max="168"
-                placeholder="Ex: 24"
-              />
-            </div>
-            
             <div class="form-group full-width">
               <label for="description">Descrição</label>
               <textarea
@@ -128,72 +151,6 @@
                 rows="3"
                 placeholder="Descreva as principais funcionalidades desta release..."
               ></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="releaseExclusiva"
-                  [(ngModel)]="newRelease.release_exclusiva"
-                />
-                Release Exclusiva
-              </label>
-            </div>
-            
-            <!-- Seção de Squads -->
-            <div class="form-group full-width">
-              <label>Squads Participantes</label>
-              <div class="squads-selection">
-                <div *ngIf="loadingSquads" class="loading-squads">
-                  <div class="spinner-small"></div>
-                  <span>Carregando squads...</span>
-                </div>
-                
-                <div *ngIf="!loadingSquads && squads.length === 0" class="no-squads">
-                  <p>Nenhuma squad disponível. <a href="#" (click)="manageSquads()">Criar squads</a></p>
-                </div>
-                
-                <div *ngIf="!loadingSquads && squads.length > 0" class="squads-grid">
-                  <div 
-                    *ngFor="let squad of squads" 
-                    class="squad-item"
-                    [class.selected]="isSquadSelected(squad.squad_id!)"
-                    (click)="toggleSquadSelection(squad.squad_id!)"
-                  >
-                    <div class="squad-checkbox">
-                      <input 
-                        type="checkbox" 
-                        [checked]="isSquadSelected(squad.squad_id!)"
-                        (change)="toggleSquadSelection(squad.squad_id!)"
-                      />
-                    </div>
-                    <div class="squad-info">
-                      <h4>{{ squad.squad_name }}</h4>
-                      <p *ngIf="squad.modulos && squad.modulos.length > 0">
-                        Módulos: {{ squad.modulos.join(', ') }}
-                      </p>
-                      <p *ngIf="squad.responsavel">
-                        Responsável: {{ squad.responsavel }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Squads Selecionadas -->
-                <div *ngIf="newRelease.squads_participantes && newRelease.squads_participantes.length > 0" class="selected-squads">
-                  <h4>Squads Selecionadas ({{ newRelease.squads_participantes.length }})</h4>
-                  <div class="selected-squads-list">
-                    <span 
-                      *ngFor="let squadId of newRelease.squads_participantes" 
-                      class="selected-squad-tag"
-                    >
-                      {{ getSquadName(squadId) }}
-                      <button type="button" (click)="toggleSquadSelection(squadId)" class="remove-squad">×</button>
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           

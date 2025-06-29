@@ -12,29 +12,30 @@ export interface ApiResponse<T> {
 export interface Release {
   release_id?: string;
   release_name: string;
-  ambiente: string;
+  squad?: string;
+  versao_homolog?: string;
+  versao_firebase?: string;
+  responsavel?: string;
   status: string;
+  descricao?: string;
+  ambiente?: string;
   sla_start_time?: string;
-  sla_duration_hours: number;
+  sla_duration_hours?: number;
   sla_hours?: number; // Alias para sla_duration_hours
   sla_active?: boolean;
   sla_status?: string;
   liberado_em?: string;
-  versao_homolog?: string;
-  versao_firebase?: string;
   versao_alpha?: string;
   link_plano_testes?: string;
   qrcode_homolog?: string;
   qrcode_alpha?: string;
-  release_exclusiva: boolean;
-  squads_participantes: string[];
-  entregas: any[];
-  descricao?: string;
+  release_exclusiva?: boolean;
+  squads_participantes?: string[];
+  entregas?: any[];
   created_at?: string;
   updated_at?: string;
   release_notes?: string;
   detalhe_entrega?: string;
-  responsavel?: string;
   modulo?: string;
   bugs_reportados?: number;
 }

@@ -5,6 +5,7 @@ import { AdminPanelComponent } from './components/admin-panel/admin-panel';
 import { ReleaseDetailComponent } from './components/release-detail/release-detail';
 import { SquadManagementComponent } from './components/squad-management/squad-management';
 import { ReleasesListComponent } from './components/releases-list/releases-list';
+import { ReleasesTableComponent } from './components/releases-table/releases-table';
 import { DemoComponent } from './components/demo/demo';
 
 export const routes: Routes = [
@@ -16,8 +17,8 @@ export const routes: Routes = [
   { path: 'release/:id', component: ReleaseDetailComponent },
   { path: 'squads', component: SquadManagementComponent },
   { path: 'demo', component: DemoComponent },
-  { path: 'homolog', component: DemoComponent },
-  { path: 'alpha', component: ReleaseDetailComponent },
+  { path: 'homolog', component: ReleasesTableComponent },
+  { path: 'alpha', component: ReleasesTableComponent },
   { path: '**', redirectTo: '/login' }
 ];
 
