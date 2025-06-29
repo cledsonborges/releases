@@ -7,9 +7,9 @@ load_dotenv()
 
 class Config:
     # AWS Configuration
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+    AWS_ACCESS_KEY_ID = "AKIA4T4OCLRRAO4MRDXF"
+    AWS_SECRET_ACCESS_KEY = "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"
+    AWS_REGION = "us-east-1"
     
     # Gemini API Configuration
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')

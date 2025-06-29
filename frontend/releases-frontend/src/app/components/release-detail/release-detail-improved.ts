@@ -337,7 +337,7 @@ export class ReleaseDetailComponent implements OnInit, OnDestroy {
       tempo_teste_horas: 0,
       observacoes: '',
       ambiente: this.currentEnvironment,
-      squad_name: this.getSquadNameForUser(this.currentUser.username)
+     // squad_name: this.getSquadNameForUser(this.currentUser.username)
     };
 
     this.loading = true;
