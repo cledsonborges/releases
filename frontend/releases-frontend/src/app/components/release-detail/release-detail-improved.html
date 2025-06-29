@@ -1,0 +1,274 @@
+<div class="release-detail-container">
+  <!-- Header com timer e informações da release -->
+  <div class="header-section">
+    <div class="release-header">
+      <div class="release-title">
+        <h1>{{ release?.release_name || '[Android]-R113' }} - Squads que fizeram entregas nessa release</h1>
+        <div class="header-actions">
+          <a href="/homolog" class="nav-link">Homolog</a>
+          <span class="separator">|</span>
+          <a href="/report-portal" class="nav-link">Report Portal</a>
+        </div>
+      </div>
+      
+      <!-- Timer Section -->
+      <div class="timer-section">
+        <div class="timer-label">Tempo restante para o término:</div>
+        <div class="timer-display">{{ getSlaTimeRemaining() }}</div>
+      </div>
+      
+      <!-- Release Info -->
+      <div class="release-info-row">
+        <div class="version-info">
+          <span class="version-label">{{ release?.versao_homolog || '2.58.0' }}</span>
+          <span class="release-number">Release {{ release?.release_id || '113' }}</span>
+        </div>
+        <div class="qr-section" *ngIf="release?.qrcode_homolog">
+          <span class="qr-label">QR Code</span>
+          <span class="version-label">Versão Firebase: {{ release?.versao_firebase || '2.58.99' }}</span>
+          <span class="qr-label">QR Code</span>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-secondary" (click)="updateRelease()">
+          <i class="icon-refresh"></i>
+          Atualizar
+        </button>
+        <button class="btn btn-secondary" (click)="exportToExcel()">
+          <i class="icon-download"></i>
+          Exportar Excel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-error">
+    <i class="icon-alert-circle"></i>
+    {{ error }}
+    <button class="btn-close" (click)="clearMessages()">×</button>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="alert alert-success">
+    <i class="icon-check-circle"></i>
+    {{ success }}
+    <button class="btn-close" (click)="clearMessages()">×</button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && release" class="main-content">
+    
+    <!-- Squad Data Table -->
+    <div class="squad-table-container">
+      <table class="squad-table">
+        <thead>
+          <tr>
+            <th class="squad-col">Squad</th>
+            <th class="module-col">Módulo</th>
+            <th class="details-col">Detalhe da Entrega</th>
+            <th class="responsible-col">Responsável</th>
+            <th class="status-col">Status</th>
+            <th class="actions-col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of testData; trackBy: trackByTestDataId" 
+              [class.editing]="isEditing(data)"
+              [class.current-user]="data.username === currentUser?.username">
+            
+            <!-- Squad -->
+            <td class="squad-cell">
+              <span class="squad-name">{{ data.squad_name || data.responsavel || data.username }}</span>
+            </td>
+
+            <!-- Módulo -->
+            <td class="module-cell">
+              <input *ngIf="isEditing(data)" 
+                     type="text" 
+                     [(ngModel)]="getEditingData(data).modulo" 
+                     class="form-input"
+                     placeholder="Ex: xvr/co-work/acompanhamento">
+              <span *ngIf="!isEditing(data)">{{ data.modulo || '-' }}</span>
+            </td>
+
+            <!-- Detalhe da Entrega -->
+            <td class="details-cell">
+              <textarea *ngIf="isEditing(data)" 
+                        [(ngModel)]="getEditingData(data).detalhe_entrega" 
+                        class="form-textarea"
+                        rows="2"
+                        placeholder="Descreva os detalhes da entrega"></textarea>
+              <span *ngIf="!isEditing(data)" 
+                    class="details-text">{{ data.detalhe_entrega || '-' }}</span>
+            </td>
+
+            <!-- Responsável -->
+            <td class="responsible-cell">
+              <input *ngIf="isEditing(data)" 
+                     type="text" 
+                     [(ngModel)]="getEditingData(data).responsavel" 
+                     class="form-input"
+                     placeholder="Nome do responsável">
+              <span *ngIf="!isEditing(data)">{{ data.responsavel || data.username }}</span>
+            </td>
+
+            <!-- Status -->
+            <td class="status-cell">
+              <select *ngIf="isEditing(data)" 
+                      [(ngModel)]="getEditingData(data).status" 
+                      class="form-select status-select"
+                      [class]="'status-' + getEditingData(data).status">
+                <option value="em_andamento">Em andamento</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="pendente">Pendente</option>
+                <option value="com_problemas">Com problemas</option>
+                <option value="bloqueado">Bloqueado</option>
+              </select>
+              <span *ngIf="!isEditing(data)" 
+                    class="status-badge"
+                    [class]="'status-' + data.status">
+                {{ getStatusLabel(data.status) }}
+              </span>
+            </td>
+
+            <!-- Ações -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <!-- Botões de edição -->
+                <div *ngIf="!isEditing(data)" class="edit-actions">
+                  <button class="btn-action btn-edit" 
+                          (click)="startEditing(data)" 
+                          [disabled]="loading"
+                          title="Editar">
+                    <i class="icon-edit"></i>
+                    Editar
+                  </button>
+                </div>
+
+                <!-- Botões de salvamento -->
+                <div *ngIf="isEditing(data)" class="save-actions">
+                  <button class="btn-action btn-save" 
+                          (click)="saveTestData(data)" 
+                          [disabled]="loading"
+                          title="Salvar">
+                    <i class="icon-check"></i>
+                    Salvar
+                  </button>
+                  <button class="btn-action btn-cancel" 
+                          (click)="cancelEditing(data)" 
+                          [disabled]="loading"
+                          title="Cancelar">
+                    <i class="icon-x"></i>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Linha vazia quando não há dados -->
+          <tr *ngIf="testData.length === 0" class="empty-row">
+            <td colspan="6" class="empty-message">
+              <p>Nenhum dado de entrega encontrado.</p>
+              <button class="btn btn-primary" (click)="addNewUserRow()" [disabled]="loading">
+                Adicionar Primeira Linha
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add New Row Button -->
+    <div class="add-row-section" *ngIf="testData.length > 0">
+      <button class="btn btn-primary" (click)="addNewUserRow()" [disabled]="loading">
+        <i class="icon-plus"></i>
+        Adicionar Nova Linha
+      </button>
+    </div>
+
+    <!-- Auto-refresh controls -->
+    <div class="auto-refresh-section">
+      <label class="auto-refresh-toggle">
+        <input type="checkbox" [(ngModel)]="autoRefreshEnabled" (change)="toggleAutoRefresh()">
+        <span class="toggle-text">Atualização automática (30s)</span>
+      </label>
+      <button class="btn btn-secondary btn-sm" (click)="refreshTestData()" [disabled]="loading">
+        <i class="icon-refresh"></i>
+        Atualizar agora
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SLA Management Card (apenas para admin) -->
+  <div class="sla-card" *ngIf="isAdmin()">
+    <div class="card-header">
+      <h2>Controle de SLA</h2>
+      <div class="sla-status" [style.background-color]="getSlaStatusColor(release?.sla_status || 'inactive')">
+        {{ getSlaStatusLabel(release?.sla_status || 'inactive') }}
+      </div>
+    </div>
+    
+    <div class="card-body">
+      <div class="sla-info">
+        <div class="sla-item">
+          <label>Duração:</label>
+          <span>{{ release?.sla_duration_hours || 24 }} horas</span>
+        </div>
+        
+        <div class="sla-item" *ngIf="release?.sla_start_time">
+          <label>Iniciado em:</label>
+          <span>{{ formatDate(release?.sla_start_time) }}</span>
+        </div>
+        
+        <div class="sla-item" *ngIf="release?.sla_active">
+          <label>Status:</label>
+          <span class="sla-active">Ativo</span>
+        </div>
+      </div>
+
+      <!-- SLA Actions -->
+      <div class="sla-actions">
+        <button class="btn btn-primary" (click)="startSla()" [disabled]="loading || release?.sla_active">
+          Iniciar SLA
+        </button>
+        
+        <button class="btn btn-warning" (click)="stopSla()" [disabled]="loading || !release?.sla_active">
+          Parar SLA
+        </button>
+        
+        <button class="btn btn-secondary" (click)="showSlaExtension = !showSlaExtension" [disabled]="loading">
+          Estender SLA
+        </button>
+      </div>
+
+      <!-- SLA Extension Form -->
+      <div class="sla-extension" *ngIf="showSlaExtension">
+        <div class="form-group">
+          <label for="slaHours">Horas adicionais:</label>
+          <input type="number" id="slaHours" [(ngModel)]="slaExtensionHours" min="1" max="168" class="form-control">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="extendSla()" [disabled]="loading || slaExtensionHours <= 0">
+            Confirmar Extensão
+          </button>
+          <button class="btn btn-secondary" (click)="showSlaExtension = false">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
