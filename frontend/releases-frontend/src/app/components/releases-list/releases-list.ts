@@ -16,6 +16,7 @@ export class ReleasesListComponent implements OnInit {
   selectedRelease: Release | null = null;
   loading = true;
   error = '';
+  dropdownOpen = false;
   
   // Dados do usuário atual
   currentUser: any = null;
@@ -61,6 +62,15 @@ export class ReleasesListComponent implements OnInit {
 
   selectRelease(release: Release) {
     this.selectedRelease = release;
+    this.dropdownOpen = false; // Fechar dropdown após seleção
+  }
+
+  toggleDropdown() {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  goBack() {
+    this.router.navigate(['/dashboard']);
   }
 
   getReleaseDisplayName(release: Release): string {

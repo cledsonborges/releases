@@ -1,57 +1,66 @@
 <div class="releases-container">
-  <!-- Sidebar com lista de releases -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>Releases Disponíveis</h2>
-      <button class="collapse-btn" title="Recolher menu">
-        <i class="icon-chevron-left"></i>
+  <!-- Dropdown menu de releases -->
+  <div class="releases-dropdown">
+    <div class="dropdown-header" (click)="toggleDropdown()">
+      <div class="navigation-controls">
+        <button class="btn-back" (click)="goBack()" title="Voltar para tela anterior">
+          <i class="icon-arrow-left"></i>
+          Voltar
+        </button>
+      </div>
+      <h2>{{ selectedRelease ? getReleaseDisplayName(selectedRelease) : 'Releases Disponíveis' }}</h2>
+      <button class="dropdown-toggle" [class.expanded]="dropdownOpen">
+        <i class="icon-chevron-down"></i>
       </button>
     </div>
     
-    <!-- Loading -->
-    <div *ngIf="loading" class="sidebar-loading">
-      <div class="spinner"></div>
-      <p>Carregando releases...</p>
-    </div>
-
-    <!-- Error -->
-    <div *ngIf="error" class="sidebar-error">
-      <i class="icon-alert-circle"></i>
-      <p>{{ error }}</p>
-      <button class="btn-retry" (click)="loadReleases()">Tentar novamente</button>
-    </div>
-
-    <!-- Lista de releases -->
-    <div *ngIf="!loading && !error" class="releases-list">
-      <div *ngFor="let release of releases" 
-           class="release-item"
-           [class.selected]="selectedRelease?.release_id === release.release_id"
-           (click)="selectRelease(release)">
-        
-        <div class="release-header">
-          <div class="release-name">{{ getReleaseDisplayName(release) }}</div>
-          <div class="release-environment" [class]="'env-' + release.ambiente">
-            {{ release.ambiente.toUpperCase() }}
-          </div>
-        </div>
-        
-        <div class="release-info">
-          <div class="release-version">{{ getReleaseVersion(release) }}</div>
-          <div class="release-number">{{ getReleaseNumber(release) }}</div>
-        </div>
-        
-        <div class="release-meta">
-          <div class="release-date">{{ formatDate(release.created_at) }}</div>
-          <div class="release-status" [class]="'status-' + (release.sla_active ? 'active' : 'inactive')">
-            {{ release.sla_active ? 'SLA Ativo' : 'SLA Inativo' }}
-          </div>
-        </div>
+    <!-- Dropdown content -->
+    <div class="dropdown-content" [class.open]="dropdownOpen">
+      <!-- Loading -->
+      <div *ngIf="loading" class="dropdown-loading">
+        <div class="spinner"></div>
+        <p>Carregando releases...</p>
       </div>
 
-      <!-- Mensagem quando não há releases -->
-      <div *ngIf="releases.length === 0" class="no-releases">
-        <i class="icon-inbox"></i>
-        <p>Nenhuma release encontrada</p>
+      <!-- Error -->
+      <div *ngIf="error" class="dropdown-error">
+        <i class="icon-alert-circle"></i>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="loadReleases()">Tentar novamente</button>
+      </div>
+
+      <!-- Lista de releases -->
+      <div *ngIf="!loading && !error" class="releases-list">
+        <div *ngFor="let release of releases" 
+             class="release-item"
+             [class.selected]="selectedRelease?.release_id === release.release_id"
+             (click)="selectRelease(release)">
+          
+          <div class="release-header">
+            <div class="release-name">{{ getReleaseDisplayName(release) }}</div>
+            <div class="release-environment" [class]="'env-' + release.ambiente">
+              {{ release.ambiente.toUpperCase() }}
+            </div>
+          </div>
+          
+          <div class="release-info">
+            <div class="release-version">{{ getReleaseVersion(release) }}</div>
+            <div class="release-number">{{ getReleaseNumber(release) }}</div>
+          </div>
+          
+          <div class="release-meta">
+            <div class="release-date">{{ formatDate(release.created_at) }}</div>
+            <div class="release-status" [class]="'status-' + (release.sla_active ? 'active' : 'inactive')">
+              {{ release.sla_active ? 'SLA Ativo' : 'SLA Inativo' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensagem quando não há releases -->
+        <div *ngIf="releases.length === 0" class="no-releases">
+          <i class="icon-inbox"></i>
+          <p>Nenhuma release encontrada</p>
+        </div>
       </div>
     </div>
   </div>
