@@ -1,140 +1,182 @@
-<div class="releases-container">
-  <!-- Dropdown menu de releases -->
-  <div class="releases-dropdown">
-    <div class="dropdown-header" (click)="toggleDropdown()">
-      <div class="navigation-controls">
-        <button class="btn-back" (click)="goBack()" title="Voltar para tela anterior">
-          <i class="icon-arrow-left"></i>
-          Voltar
-        </button>
-      </div>
-      <h2>{{ selectedRelease ? getReleaseDisplayName(selectedRelease) : 'Releases Disponíveis' }}</h2>
-      <button class="dropdown-toggle" [class.expanded]="dropdownOpen">
-        <i class="icon-chevron-down"></i>
+<div class="releases-container" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Sidebar com lista de releases -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <!-- Header da sidebar -->
+    <header class="sidebar-header">
+      <h2 *ngIf="!sidebarCollapsed">Releases</h2>
+      <button 
+        class="collapse-btn" 
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'"
+        [title]="sidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18m-9-9l9 9-9 9" *ngIf="sidebarCollapsed"></path>
+          <path d="M21 12H3m9-9l-9 9 9 9" *ngIf="!sidebarCollapsed"></path>
+        </svg>
+      </button>
+    </header>
+    
+    <!-- Estados de loading e erro -->
+    <div *ngIf="loading" class="sidebar-loading">
+      <div class="spinner" role="status" aria-label="Carregando releases"></div>
+      <p *ngIf="!sidebarCollapsed">Carregando releases...</p>
+    </div>
+
+    <div *ngIf="error && !loading" class="sidebar-error">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <p *ngIf="!sidebarCollapsed">{{ error }}</p>
+      <button class="btn-retry" (click)="loadReleases()" *ngIf="!sidebarCollapsed">
+        Tentar novamente
       </button>
     </div>
-    
-    <!-- Dropdown content -->
-    <div class="dropdown-content" [class.open]="dropdownOpen">
-      <!-- Loading -->
-      <div *ngIf="loading" class="dropdown-loading">
-        <div class="spinner"></div>
-        <p>Carregando releases...</p>
-      </div>
 
-      <!-- Error -->
-      <div *ngIf="error" class="dropdown-error">
-        <i class="icon-alert-circle"></i>
-        <p>{{ error }}</p>
-        <button class="btn-retry" (click)="loadReleases()">Tentar novamente</button>
-      </div>
-
-      <!-- Lista de releases -->
-      <div *ngIf="!loading && !error" class="releases-list">
-        <div *ngFor="let release of releases" 
-             class="release-item"
-             [class.selected]="selectedRelease?.release_id === release.release_id"
-             (click)="selectRelease(release)">
-          
-          <div class="release-header">
-            <div class="release-name">{{ getReleaseDisplayName(release) }}</div>
-            <div class="release-environment" [class]="'env-' + release.ambiente">
-              {{ release.ambiente.toUpperCase() }}
-            </div>
+    <!-- Lista de releases -->
+    <nav *ngIf="!loading && !error" class="releases-list" role="navigation" aria-label="Lista de releases">
+      <div *ngFor="let release of releases; trackBy: trackByReleaseId" 
+           class="release-item"
+           [class.selected]="selectedRelease?.release_id === release.release_id"
+           (click)="selectRelease(release)"
+           (keydown.enter)="selectRelease(release)"
+           (keydown.space)="selectRelease(release)"
+           tabindex="0"
+           role="button"
+           [attr.aria-pressed]="selectedRelease?.release_id === release.release_id"
+           [attr.aria-label]="'Selecionar release ' + getReleaseDisplayName(release)">
+        
+        <div class="release-header">
+          <div class="release-name" [title]="getReleaseDisplayName(release)">
+            {{ sidebarCollapsed ? getReleaseDisplayName(release).substring(0, 3) + '...' : getReleaseDisplayName(release) }}
           </div>
-          
-          <div class="release-info">
-            <div class="release-version">{{ getReleaseVersion(release) }}</div>
-            <div class="release-number">{{ getReleaseNumber(release) }}</div>
-          </div>
-          
-          <div class="release-meta">
-            <div class="release-date">{{ formatDate(release.created_at) }}</div>
-            <div class="release-status" [class]="'status-' + (release.sla_active ? 'active' : 'inactive')">
-              {{ release.sla_active ? 'SLA Ativo' : 'SLA Inativo' }}
-            </div>
+          <div class="release-environment" 
+               [class]="'env-' + release.ambiente"
+               [title]="release.ambiente.toUpperCase()">
+            {{ sidebarCollapsed ? release.ambiente.substring(0, 1).toUpperCase() : release.ambiente.toUpperCase() }}
           </div>
         </div>
-
-        <!-- Mensagem quando não há releases -->
-        <div *ngIf="releases.length === 0" class="no-releases">
-          <i class="icon-inbox"></i>
-          <p>Nenhuma release encontrada</p>
+        
+        <div class="release-info" *ngIf="!sidebarCollapsed">
+          <div class="release-version" [title]="getReleaseVersion(release)">{{ getReleaseVersion(release) }}</div>
+          <div class="release-number" [title]="getReleaseNumber(release)">{{ getReleaseNumber(release) }}</div>
+        </div>
+        
+        <div class="release-meta" *ngIf="!sidebarCollapsed">
+          <div class="release-date">{{ formatDate(release.created_at) }}</div>
+          <div class="release-status" 
+               [class]="'status-' + (release.sla_active ? 'active' : 'inactive')"
+               [title]="release.sla_active ? 'SLA Ativo' : 'SLA Inativo'">
+            {{ release.sla_active ? 'Ativo' : 'Inativo' }}
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+
+      <!-- Mensagem quando não há releases -->
+      <div *ngIf="releases.length === 0" class="no-releases">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+        </svg>
+        <p *ngIf="!sidebarCollapsed">Nenhuma release encontrada</p>
+      </div>
+    </nav>
+  </aside>
 
   <!-- Conteúdo principal -->
-  <div class="main-content">
+  <main class="main-content" role="main">
     <!-- Header da release selecionada -->
     <div *ngIf="selectedRelease" class="content-header">
-      <div class="header-section">
+      <section class="header-section">
         <div class="release-header">
+          <!-- Navegação breadcrumb -->
+          <nav class="breadcrumb" aria-label="Navegação">
+            <button class="btn-back" (click)="goBack()" title="Voltar para tela anterior">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 19-7-7 7-7"></path>
+                <path d="M19 12H5"></path>
+              </svg>
+              Voltar
+            </button>
+          </nav>
+
           <div class="release-title">
-            <h1>{{ getReleaseDisplayName(selectedRelease) }} - Squads que fizeram entregas nessa release</h1>
+            <h1>{{ getReleaseDisplayName(selectedRelease!) }} - Squads que fizeram entregas nessa release</h1>
             <div class="header-actions">
-              <a href="/homolog" class="nav-link" (click)="goToHomolog()">Homolog</a>
-              <span class="separator">|</span>
-              <a href="#" class="nav-link" (click)="goToReportPortal()">Report Portal</a>
+              <a href="/homolog" class="nav-link" (click)="goToHomolog()" role="button">
+                Homolog
+              </a>
+              <span class="separator" aria-hidden="true">|</span>
+              <a href="#" class="nav-link" (click)="goToReportPortal()" role="button">
+                Report Portal
+              </a>
             </div>
           </div>
           
           <!-- Timer Section -->
-          <div class="timer-section">
+          <div class="timer-section" role="timer" [attr.aria-label]="'Tempo restante: ' + getSlaTimeRemaining(selectedRelease!)">
             <div class="timer-label">Tempo restante para o término:</div>
-            <div class="timer-display">{{ getSlaTimeRemaining(selectedRelease) }}</div>
+            <div class="timer-display">{{ getSlaTimeRemaining(selectedRelease!) }}</div>
           </div>
           
           <!-- Release Info -->
           <div class="release-info-row">
             <div class="version-info">
-              <span class="version-label">{{ getReleaseVersion(selectedRelease) }}</span>
-              <span class="release-number">{{ getReleaseNumber(selectedRelease) }}</span>
+              <span class="version-label">{{ getReleaseVersion(selectedRelease!) }}</span>
+              <span class="release-number">{{ getReleaseNumber(selectedRelease!) }}</span>
             </div>
             <div class="qr-section" *ngIf="selectedRelease.qrcode_homolog || selectedRelease.qrcode_alpha">
               <span class="qr-label">QR Code</span>
               <span class="version-label">Versão Firebase: {{ selectedRelease.versao_firebase || 'N/A' }}</span>
-              <span class="qr-label">QR Code</span>
             </div>
           </div>
           
           <!-- Action Buttons (apenas para admin) -->
-          <div class="action-buttons" *ngIf="isAdmin()">
-            <button class="btn btn-secondary" (click)="updateRelease()">
-              <i class="icon-refresh"></i>
+          <div class="action-buttons" *ngIf="isAdmin()" role="toolbar" aria-label="Ações da release">
+            <button class="btn btn-secondary" (click)="updateRelease()" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
               Atualizar
             </button>
-            <button class="btn btn-secondary" (click)="exportToExcel()">
-              <i class="icon-download"></i>
+            <button class="btn btn-secondary" (click)="exportToExcel()" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
               Exportar Excel
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- Tabela de squads -->
-      <div class="squads-section">
+      <section class="squads-section" aria-labelledby="squads-title">
+        <h2 id="squads-title" class="sr-only">Lista de squads da release</h2>
         <div class="squad-table-container">
-          <table class="squad-table">
+          <table class="squad-table" role="table" aria-label="Squads e entregas da release">
             <thead>
-              <tr>
-                <th class="squad-col">Squad</th>
-                <th class="module-col">Módulo</th>
-                <th class="details-col">Detalhe da Entrega</th>
-                <th class="responsible-col">Responsável</th>
-                <th class="status-col">Status</th>
-                <th class="actions-col" *ngIf="isAdmin()">Ações</th>
+              <tr role="row">
+                <th scope="col" class="squad-col">Squad</th>
+                <th scope="col" class="module-col">Módulo</th>
+                <th scope="col" class="details-col">Detalhe da Entrega</th>
+                <th scope="col" class="responsible-col">Responsável</th>
+                <th scope="col" class="status-col">Status</th>
+                <th scope="col" class="actions-col" *ngIf="isAdmin()">Ações</th>
               </tr>
             </thead>
             <tbody>
               <!-- Dados de exemplo - substituir por dados reais -->
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">02 - SQUAD ACOMPANHAMENTO DE PV</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtCoreInfraAcompanhamento-v.2.3.2</span>
+                  <code>xvtCoreInfraAcompanhamento-v.2.3.2</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">Ajuste de crash na tela de duas vias</span>
@@ -143,22 +185,25 @@
                   <span>Edilson Coimbra</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-em_andamento">Em andamento</span>
+                  <span class="status-badge status-em_andamento" role="status">Em andamento</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad ACOMPANHAMENTO DE PV'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
               
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">07 - ACOMPANHA CANAIS FÍSICOS SUSTENTABILIDADE</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtAcompanhamento-v3.3.2</span>
+                  <code>xvtAcompanhamento-v3.3.2</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">Massa de incremento</span>
@@ -167,22 +212,25 @@
                   <span>Edilson Coimbra</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-em_andamento">Em andamento</span>
+                  <span class="status-badge status-em_andamento" role="status">Em andamento</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad ACOMPANHA CANAIS FÍSICOS SUSTENTABILIDADE'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
 
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">06 - SQUAD VITRINE DE FUNDOS E PREV</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtVitrine-1.5.4</span>
+                  <code>xvtVitrine-1.5.4</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">nada a destacar</span>
@@ -191,22 +239,25 @@
                   <span>Marcelo Schramm</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-finalizado">Finalizado</span>
+                  <span class="status-badge status-finalizado" role="status">Finalizado</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad VITRINE DE FUNDOS E PREV'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
 
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">09 - SQUAD VITRINE PV</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtVitrine-1.5.4</span>
+                  <code>xvtVitrine-1.5.4</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">nada a destacar</span>
@@ -215,22 +266,25 @@
                   <span>Marcelo Schramm</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-finalizado">Finalizado</span>
+                  <span class="status-badge status-finalizado" role="status">Finalizado</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad VITRINE PV'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
 
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">15 - SQUAD ONBOARDING</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtLogin-29.3-alfa</span>
+                  <code>xvtLogin-29.3-alfa</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">Instalação do sistema para qualificar nos novos</span>
@@ -239,22 +293,25 @@
                   <span>Thiago Sakurai</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-finalizado">Finalizado</span>
+                  <span class="status-badge status-finalizado" role="status">Finalizado</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad ONBOARDING'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
 
-              <tr>
+              <tr role="row">
                 <td class="squad-cell">
                   <span class="squad-name">23 - SQUAD CONCIERGE DIGITAL (antes DTANO)</span>
                 </td>
                 <td class="module-cell">
-                  <span>xvtConciergeAssistente-v.2.1-release</span>
+                  <code>xvtConciergeAssistente-v.2.1-release</code>
                 </td>
                 <td class="details-cell">
                   <span class="details-text">Sobre versão da tela de entrada com novo rel e campo UI</span>
@@ -263,27 +320,33 @@
                   <span>Thiago Sakurai</span>
                 </td>
                 <td class="status-cell">
-                  <span class="status-badge status-finalizado">Finalizado</span>
+                  <span class="status-badge status-finalizado" role="status">Finalizado</span>
                 </td>
                 <td class="actions-cell" *ngIf="isAdmin()">
-                  <button class="btn-action btn-edit">
-                    <i class="icon-edit"></i>
-                    Editar
+                  <button class="btn-action btn-edit" type="button" [attr.aria-label]="'Editar squad CONCIERGE DIGITAL'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sr-only">Editar</span>
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- Mensagem quando nenhuma release está selecionada -->
     <div *ngIf="!selectedRelease && !loading" class="no-selection">
-      <i class="icon-arrow-left"></i>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 12l2 2 4-4"></path>
+        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+      </svg>
       <h2>Selecione uma release</h2>
-      <p>Escolha uma release na lista ao lado para visualizar os detalhes e squads.</p>
+      <p>Escolha uma release na sidebar para visualizar os detalhes e squads que fizeram entregas.</p>
     </div>
-  </div>
+  </main>
 </div>
 
