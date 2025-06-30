@@ -1,0 +1,161 @@
+<div class="release-detail-container">
+  <!-- Header -->
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      ← Voltar
+    </button>
+    <h1>{{ release?.release_name || 'Carregando...' }}</h1>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    Carregando detalhes da release...
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+    <button (click)="error = ''" class="close-button">Fechar</button>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="success-message">
+    {{ success }}
+    <button (click)="success = ''" class="close-button">Fechar</button>
+  </div>
+
+  <!-- Release Details -->
+  <div *ngIf="!loading && release" class="release-content">
+    <!-- Release Info -->
+    <div class="release-info">
+      <h2>Informações da Release</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Release:</label>
+          <span>{{ release.release_name }}</span>
+        </div>
+        <div class="info-item">
+          <label>Squad Principal:</label>
+          <span>{{ release.squad }}</span>
+        </div>
+        <div class="info-item">
+          <label>Responsável Principal:</label>
+          <span>{{ release.responsavel }}</span>
+        </div>
+        <div class="info-item">
+          <label>Status Geral:</label>
+          <span class="status-badge" [style.background-color]="getStatusColor(release.status)">
+            {{ getStatusLabel(release.status) }}
+          </span>
+        </div>
+        <div class="info-item">
+          <label>Criado em:</label>
+          <span>{{ release.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Squad Status Table -->
+    <div class="squad-status-section">
+      <div class="section-header">
+        <h2>Status por Squad</h2>
+        <button *ngIf="canEdit()" class="add-button" (click)="addSquadStatus()">
+          + Adicionar Squad
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="squad-table">
+          <thead>
+            <tr>
+              <th>Squad</th>
+              <th>Responsável</th>
+              <th>Status</th>
+              <th>Última Atualização</th>
+              <th *ngIf="canEdit()">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let squadStatus of squadStatuses">
+              <!-- Squad -->
+              <td>
+                <div *ngIf="!isEditing(squadStatus.squad_status_id, 'squad')" 
+                     class="editable-field"
+                     (click)="startEdit(squadStatus.squad_status_id, 'squad', squadStatus.squad)">
+                  {{ squadStatus.squad }}
+                </div>
+                <input *ngIf="isEditing(squadStatus.squad_status_id, 'squad')"
+                       [(ngModel)]="editingValue"
+                       class="edit-input"
+                       (keyup.enter)="saveEdit()"
+                       (keyup.escape)="cancelEdit()"
+                       #editInput>
+              </td>
+
+              <!-- Responsável -->
+              <td>
+                <div *ngIf="!isEditing(squadStatus.squad_status_id, 'responsavel')" 
+                     class="editable-field"
+                     (click)="startEdit(squadStatus.squad_status_id, 'responsavel', squadStatus.responsavel)">
+                  {{ squadStatus.responsavel }}
+                </div>
+                <input *ngIf="isEditing(squadStatus.squad_status_id, 'responsavel')"
+                       [(ngModel)]="editingValue"
+                       class="edit-input"
+                       (keyup.enter)="saveEdit()"
+                       (keyup.escape)="cancelEdit()">
+              </td>
+
+              <!-- Status -->
+              <td>
+                <div *ngIf="!isEditing(squadStatus.squad_status_id, 'status')" 
+                     class="status-cell"
+                     (click)="startEdit(squadStatus.squad_status_id, 'status', squadStatus.status)">
+                  <span class="status-badge" [style.background-color]="getStatusColor(squadStatus.status)">
+                    {{ getStatusLabel(squadStatus.status) }}
+                  </span>
+                </div>
+                <select *ngIf="isEditing(squadStatus.squad_status_id, 'status')"
+                        [(ngModel)]="editingValue"
+                        class="edit-select"
+                        (change)="saveEdit()">
+                  <option *ngFor="let option of statusOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </td>
+
+              <!-- Última Atualização -->
+              <td>
+                {{ squadStatus.updated_at | date:'dd/MM/yyyy HH:mm' }}
+              </td>
+
+              <!-- Ações -->
+              <td *ngIf="canEdit()">
+                <div *ngIf="isEditing(squadStatus.squad_status_id, editingField)" class="edit-actions">
+                  <button class="save-button" (click)="saveEdit()">Salvar</button>
+                  <button class="cancel-button" (click)="cancelEdit()">Cancelar</button>
+                </div>
+                <div *ngIf="!isEditing(squadStatus.squad_status_id, editingField)" class="view-actions">
+                  <button class="edit-button" 
+                          (click)="startEdit(squadStatus.squad_status_id, 'squad', squadStatus.squad)">
+                    Editar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="squadStatuses.length === 0" class="empty-state">
+          <p>Nenhuma squad encontrada para esta release.</p>
+          <button *ngIf="canEdit()" class="add-button" (click)="addSquadStatus()">
+            Adicionar Primeira Squad
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

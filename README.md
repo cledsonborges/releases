@@ -28,6 +28,13 @@ Sistema completo para gerenciamento de releases, controle de SLA e acompanhament
 - Geração automática de QR codes
 - Release notes com IA (Gemini)
 
+### ✅ Gerenciamento Simplificado de Status
+- **Persistência Garantida**: Todas as alterações de status são salvas imediatamente no DynamoDB.
+- **Estrutura Simples**: Foco nos campos essenciais: Squad, Responsável e Status.
+- **Escalabilidade**: Suporte a múltiplas squads por release.
+- **Interface Intuitiva**: Edição inline com feedback visual.
+- **Validação**: Controle de permissões e validação de dados.
+
 ### 📈 Sistema de Relatórios
 - Métricas de performance
 - Acompanhamento de SLAs
@@ -78,14 +85,19 @@ releases-system/
 │       │   ├── config.py            # Configurações
 │       │   ├── init_db.py           # Inicialização do BD
 │       │   ├── models/
-│       │   │   └── dynamodb_models.py
+│       │   │   ├── dynamodb_models.py
+│       │   │   └── simplified_models.py # NOVOS modelos simplificados
 │       │   ├── routes/
 │       │   │   ├── releases.py      # Rotas de releases
 │       │   │   ├── squads.py        # Rotas de squads
-│       │   │   └── reports.py       # Rotas de relatórios
-│       │   └── services/
-│       │       ├── gemini_service.py # Integração Gemini AI
-│       │       └── qr_service.py     # Geração QR codes
+│       │   │   ├── reports.py       # Rotas de relatórios
+│       │   │   ├── simplified_releases.py # NOVAS rotas simplificadas
+│       │   │   └── database_management.py # NOVAS rotas de gerenciamento de BD
+│       │   ├── services/
+│       │   │   ├── gemini_service.py # Integração Gemini AI
+│       │   │   └── qr_service.py     # Geração QR codes
+│       │   └── utils/
+│       │       └── database_management.py # NOVO utilitário de gerenciamento de BD
 │       ├── .env                     # Variáveis de ambiente
 │       └── requirements.txt         # Dependências Python
 └── frontend/
@@ -94,17 +106,19 @@ releases-system/
         │   ├── app/
         │   │   ├── components/
         │   │   │   ├── login/       # Componente de login
-        │   │   │   ├── dashboard/   # Dashboard principal
-        │   │   │   ├── admin-panel/ # Painel administrativo
-        │   │   │   ├── release-detail/ # Detalhes da release
-        │   │   │   └── reports/     # Relatórios
-        │   │   ├── services/
-        │   │   │   ├── api.service.ts    # Serviço da API
-        │   │   │   └── auth.service.ts   # Serviço de autenticação
-        │   │   ├── app.routes.ts    # Configuração de rotas
-        │   │   └── app.config.ts    # Configuração do app
-        │   └── styles.scss          # Estilos globais
-        └── package.json             # Dependências Node.js
+│       │   │   │   ├── dashboard/   # Dashboard principal
+│       │   │   │   ├── admin-panel/ # Painel administrativo
+│       │   │   │   ├── release-detail/ # Detalhes da release (antigo)
+│       │   │   │   ├── simplified-release-detail/ # NOVO Detalhes da release simplificada
+│       │   │   │   ├── simplified-releases-list/ # NOVO Lista de releases simplificadas
+│       │   │   │   └── reports/     # Relatórios
+│       │   │   ├── services/
+│       │   │   │   ├── api.service.ts    # Serviço da API (atualizado)
+│       │   │   │   └── auth.service.ts   # Serviço de autenticação
+│       │   │   ├── app.routes.ts    # Configuração de rotas
+│       │   │   └── app.config.ts    # Configuração do app
+│       │   └── styles.scss          # Estilos globais
+│       └── package.json             # Dependências Node.js
 ```
 
 ## 🚀 Como Executar
@@ -117,9 +131,14 @@ releases-system/
 
 ### Backend
 ```bash
+# No diretório do seu projeto backend
 cd backend/releases-backend
+
+# Instalar dependências
 source venv/bin/activate
 pip install -r requirements.txt
+
+# Executar a aplicação
 python src/main.py
 ```
 
@@ -186,6 +205,107 @@ FLASK_DEBUG=True
 - Status de releases
 - Exportação de dados
 
+## 🚀 Como Usar a Nova Estrutura Simplificada
+
+### 1. Deploy do Backend Atualizado
+
+Faça o deploy do backend com as novas funcionalidades (já está na branch `simplified-status-solution`):
+
+```bash
+# No diretório do seu projeto backend
+cd backend/releases-backend
+
+# Fazer deploy para AWS/Vercel (conforme sua configuração atual)
+# Exemplo para Vercel:
+vercel --prod
+```
+
+### 2. Executar Reset Completo do Banco (RECOMENDADO)
+
+Para garantir que tudo funcione corretamente com a nova estrutura, execute o reset completo do banco de dados. Isso irá migrar dados existentes, deletar tabelas antigas e criar as novas tabelas simplificadas:
+
+```bash
+POST https://sua-api.vercel.app/api/reset-database
+```
+
+### 3. Atualizar Frontend
+
+No frontend, você precisará:
+
+#### 3.1. Atualizar as Rotas do Angular
+
+Adicione as novas rotas no `app.routes.ts` (localizado em `frontend/releases-frontend/src/app/app.routes.ts`):
+
+```typescript
+import { SimplifiedReleaseDetailComponent } from './components/simplified-release-detail/simplified-release-detail';
+import { SimplifiedReleasesListComponent } from './components/simplified-releases-list/simplified-releases-list';
+
+export const routes: Routes = [
+  // ... suas rotas existentes
+  
+  // Novas rotas simplificadas
+  { 
+    path: 'simplified-releases', 
+    component: SimplifiedReleasesListComponent 
+  },
+  { 
+    path: 'simplified-release/:id', 
+    component: SimplifiedReleaseDetailComponent 
+  },
+  
+  // ... outras rotas
+];
+```
+
+#### 3.2. Atualizar Navegação
+
+Adicione links para as novas páginas no seu menu/navegação (ex: `frontend/releases-frontend/src/app/app.component.html` ou onde seu menu estiver):
+
+```html
+<a routerLink="/simplified-releases">Releases Simplificadas</a>
+```
+
+### 4. Testar a Nova Funcionalidade
+
+#### 4.1. Acessar Lista de Releases
+```
+https://seu-frontend.com/simplified-releases
+```
+
+#### 4.2. Inicializar Banco (se necessário)
+Na página, clique em "Inicializar BD" se as tabelas não existirem ou se você não executou o `reset-database` via API.
+
+#### 4.3. Criar Release de Teste
+1. Clique em "Nova Release"
+2. Preencha os dados básicos
+3. Teste a edição inline dos status (Squad, Responsável, Status)
+
+#### 4.4. Verificar Persistência
+1. Altere um status
+2. Atualize a página (F5)
+3. Verifique se a alteração foi mantida
+
+## 🔧 Novos Endpoints Disponíveis
+
+### Gerenciamento de Banco
+- `GET /api/database-status` - Verifica status das tabelas e fornece recomendações
+- `POST /api/reset-database` - **RECOMENDADO** - Executa o reset completo do banco (migra, deleta antigas, cria novas)
+- `POST /api/drop-old-tables` - Deleta apenas tabelas antigas
+- `POST /api/create-simplified-tables` - Cria apenas tabelas novas
+- `POST /api/migrate-data` - Migra dados das tabelas antigas para as novas
+- `GET /api/list-tables` - Lista todas as tabelas existentes no DynamoDB
+
+### Releases Simplificadas
+- `GET /api/simplified-releases` - Lista todas as releases simplificadas
+- `POST /api/simplified-releases` - Cria uma nova release simplificada
+- `GET /api/simplified-releases/{id}` - Busca uma release simplificada específica
+- `PUT /api/simplified-releases/{id}` - Atualiza uma release simplificada
+
+### Status de Squads
+- `POST /api/simplified-releases/{id}/squad-status` - Cria um novo status de squad para uma release
+- `PUT /api/squad-status/{id}` - Atualiza o status de um squad
+- `GET /api/simplified-releases/{id}/squad-status` - Lista todos os status de squads de uma release
+
 ## 🔒 Segurança
 
 - Validação de entrada em todas as rotas
@@ -227,4 +347,6 @@ Sistema proprietário desenvolvido para uso interno.
 **Status**: ✅ Completo e Funcional
 **Versão**: 1.0.0
 **Data**: Junho 2025
+
+
 
