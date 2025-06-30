@@ -305,3 +305,53 @@ export class ApiService {
   }
 }
 
+
+  // Simplified Releases API
+  getSimplifiedReleases(): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/simplified-releases`);
+  }
+
+  getSimplifiedRelease(releaseId: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/simplified-releases/${releaseId}`);
+  }
+
+  createSimplifiedRelease(release: any): Observable<ApiResponse<{release_id: string}>> {
+    return this.http.post<ApiResponse<{release_id: string}>>(`${this.baseUrl}/simplified-releases`, 
+      release, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateSimplifiedRelease(releaseId: string, release: any): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/simplified-releases/${releaseId}`, 
+      release, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Squad Status API
+  createSquadStatus(releaseId: string, squadData: any): Observable<ApiResponse<{squad_status_id: string}>> {
+    return this.http.post<ApiResponse<{squad_status_id: string}>>(`${this.baseUrl}/simplified-releases/${releaseId}/squad-status`, 
+      squadData, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateSquadStatus(squadStatusId: string, updateData: any): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/squad-status/${squadStatusId}`, 
+      updateData, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getSquadStatusesByRelease(releaseId: string): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/simplified-releases/${releaseId}/squad-status`);
+  }
+
+  // Initialize Simplified Database
+  initSimplifiedDatabase(): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/init-simplified-db`, {}, 
+      { headers: this.getHeaders() }
+    );
+  }
+
