@@ -154,7 +154,7 @@ export class ReleaseDetailComponent implements OnInit {
   }
 
   saveEdit(): void {
-    if (!this.editingSquadId || !this.editingField) return;
+    if (!this.editingSquadId || !this.editingField || !this.release?.release_id) return;
 
     const squadIndex = this.squadDeliveries.findIndex(s => s.squad_id === this.editingSquadId);
     if (squadIndex === -1) return;
@@ -162,14 +162,23 @@ export class ReleaseDetailComponent implements OnInit {
     // Atualizar o valor
     (this.squadDeliveries[squadIndex] as any)[this.editingField] = this.editingValue;
 
-    // Simular salvamento na API
-    this.success = "Dados salvos com sucesso!";
-    this.clearEdit();
-    
-    // Limpar mensagem após 3 segundos
-    setTimeout(() => {
-      this.success = "";
-    }, 3000);
+    this.apiService.updateReleaseStatus(this.release.release_id, { squad_id: this.editingSquadId, [this.editingField]: this.editingValue }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.success = "Dados salvos com sucesso!";
+          this.clearEdit();
+          setTimeout(() => {
+            this.success = "";
+          }, 3000);
+        } else {
+          this.error = response.error || "Erro ao atualizar status";
+        }
+      },
+      error: (err) => {
+        this.error = "Erro ao conectar com a API";
+        console.error("Erro:", err);
+      }
+    });
   }
 
   cancelEdit(): void {
