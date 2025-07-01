@@ -6,9 +6,9 @@
         <button class="back-button" (click)="goBack()">
           ← Voltar
         </button>
-        <div class="release-info" *ngIf="release">
-          <h1>{{ release.release_name }}</h1>
-          <p class="release-subtitle">Squads que fizeram entregas nessa release</p>
+        <div class="release-info" *ngIf="releaseWithTestStatus">
+          <h1>{{ releaseWithTestStatus.release_name }}</h1>
+          <p class="release-subtitle">Status dos Testes por Squad</p>
         </div>
       </div>
       <div class="header-right">
@@ -20,7 +20,7 @@
   <!-- Loading -->
   <div *ngIf="loading" class="loading">
     <div class="spinner"></div>
-    <p>Carregando detalhes da release...</p>
+    <p>Carregando status de testes...</p>
   </div>
 
   <!-- Error Message -->
@@ -36,84 +36,58 @@
   </div>
 
   <!-- Release Details -->
-  <div *ngIf="!loading && release" class="release-details">
+  <div *ngIf="!loading && releaseWithTestStatus" class="release-details">
     <!-- Release Info Card -->
     <div class="release-info-card">
       <div class="info-item">
         <span class="label">Release:</span>
-        <span class="value">{{ release.release_name }}</span>
+        <span class="value">{{ releaseWithTestStatus.release_name }}</span>
       </div>
       <div class="info-item">
         <span class="label">Versão Firebase:</span>
-        <span class="value">{{ release.versao_firebase || 'N/A' }}</span>
+        <span class="value">{{ releaseWithTestStatus.versao_firebase || 'N/A' }}</span>
       </div>
       <div class="info-item">
-        <span class="label">Criado em:</span>
-        <span class="value">{{ formatDate(release.created_at) }}</span>
+        <span class="label">Liberado em:</span>
+        <span class="value">{{ formatDate(releaseWithTestStatus.liberado_em) }}</span>
       </div>
     </div>
 
-    <!-- Squad Deliveries Table -->
+    <!-- Test Status Table -->
     <div class="table-container">
-      <table class="squad-deliveries-table">
+      <div class="table-header">
+        <h3>Status dos Testes por Squad</h3>
+        <button class="add-squad-btn" (click)="addNewSquad()" [disabled]="saving">
+          + Adicionar Squad
+        </button>
+      </div>
+      
+      <table class="test-status-table">
         <thead>
           <tr>
             <th>Squad</th>
-            <th>Módulo</th>
-            <th>Detalhe da Entrega</th>
             <th>Responsável</th>
             <th>Status</th>
+            <th>Observações</th>
             <th *ngIf="canEdit()">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let delivery of squadDeliveries" class="delivery-row">
+          <tr *ngFor="let testStatus of testStatuses" class="test-status-row">
             <!-- Squad -->
             <td class="squad-name">
-              <strong>{{ delivery.squad_name }}</strong>
-            </td>
-            
-            <!-- Módulo -->
-            <td>
-              <span *ngIf="!isEditing(delivery.squad_id, 'modulo')">
-                {{ delivery.squad_name }}
-              </span>
-              <input 
-                *ngIf="isEditing(delivery.squad_id, 'modulo')"
-                type="text" 
-                [(ngModel)]="editingValue"
-                class="edit-input"
-                (keyup.enter)="saveEdit()"
-                (keyup.escape)="cancelEdit()"
-                #editInput>
-            </td>
-            
-            <!-- Detalhe da Entrega -->
-            <td class="delivery-detail">
-              <span *ngIf="!isEditing(delivery.squad_id, 'detalhe_entrega')" 
-                    class="detail-text"
-                    (click)="startEdit(delivery.squad_id, 'detalhe_entrega', delivery.detalhe_entrega)">
-                {{ delivery.detalhe_entrega || 'Clique para adicionar detalhes' }}
-              </span>
-              <textarea 
-                *ngIf="isEditing(delivery.squad_id, 'detalhe_entrega')"
-                [(ngModel)]="editingValue"
-                class="edit-textarea"
-                (keyup.enter)="saveEdit()"
-                (keyup.escape)="cancelEdit()"
-                rows="3"
-                #editTextarea></textarea>
+              <strong>{{ testStatus.squad_name }}</strong>
             </td>
             
             <!-- Responsável -->
-            <td>
-              <span *ngIf="!isEditing(delivery.squad_id, 'responsavel')"
+            <td class="responsavel-cell">
+              <span *ngIf="!isEditing(testStatus.squad_name, 'responsavel')"
                     class="responsavel-text"
-                    (click)="startEdit(delivery.squad_id, 'responsavel', delivery.responsavel)">
-                {{ delivery.responsavel || 'Clique para adicionar responsável' }}
+                    (click)="startEdit(testStatus.squad_name, 'responsavel', testStatus.responsavel)">
+                {{ testStatus.responsavel || 'Clique para adicionar responsável' }}
               </span>
               <input 
-                *ngIf="isEditing(delivery.squad_id, 'responsavel')"
+                *ngIf="isEditing(testStatus.squad_name, 'responsavel')"
                 type="text" 
                 [(ngModel)]="editingValue"
                 class="edit-input"
@@ -124,14 +98,14 @@
             
             <!-- Status -->
             <td class="status-cell">
-              <span *ngIf="!isEditing(delivery.squad_id, 'status')" 
+              <span *ngIf="!isEditing(testStatus.squad_name, 'status')" 
                     class="status-badge"
-                    [style.background-color]="getStatusColor(delivery.status)"
-                    (click)="startEdit(delivery.squad_id, 'status', delivery.status)">
-                {{ getStatusLabel(delivery.status) }}
+                    [style.background-color]="getStatusColor(testStatus.status)"
+                    (click)="canEditSquad(testStatus.squad_name) && startEdit(testStatus.squad_name, 'status', testStatus.status)">
+                {{ getStatusLabel(testStatus.status) }}
               </span>
               <select 
-                *ngIf="isEditing(delivery.squad_id, 'status')"
+                *ngIf="isEditing(testStatus.squad_name, 'status')"
                 [(ngModel)]="editingValue"
                 class="edit-select"
                 (change)="saveEdit()"
@@ -142,15 +116,35 @@
               </select>
             </td>
             
+            <!-- Observações -->
+            <td class="observacoes-cell">
+              <span *ngIf="!isEditing(testStatus.squad_name, 'observacoes')" 
+                    class="observacoes-text"
+                    (click)="canEditSquad(testStatus.squad_name) && startEdit(testStatus.squad_name, 'observacoes', testStatus.observacoes || '')">
+                {{ testStatus.observacoes || 'Clique para adicionar observações' }}
+              </span>
+              <textarea 
+                *ngIf="isEditing(testStatus.squad_name, 'observacoes')"
+                [(ngModel)]="editingValue"
+                class="edit-textarea"
+                (keyup.enter)="saveEdit()"
+                (keyup.escape)="cancelEdit()"
+                rows="2"
+                #editObservacoes></textarea>
+            </td>
+            
             <!-- Ações -->
             <td *ngIf="canEdit()" class="actions-cell">
-              <div *ngIf="isEditing(delivery.squad_id, editingField!)" class="edit-actions">
-                <button class="save-btn" (click)="saveEdit()">Salvar</button>
-                <button class="cancel-btn" (click)="cancelEdit()">Cancelar</button>
+              <div *ngIf="isEditing(testStatus.squad_name, editingField!)" class="edit-actions">
+                <button class="save-btn" (click)="saveEdit()" [disabled]="saving">
+                  {{ saving ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button class="cancel-btn" (click)="cancelEdit()" [disabled]="saving">Cancelar</button>
               </div>
-              <div *ngIf="!isEditing(delivery.squad_id, editingField!)" class="view-actions">
+              <div *ngIf="!isEditing(testStatus.squad_name, editingField!)" class="view-actions">
                 <button class="edit-btn" 
-                        (click)="startEdit(delivery.squad_id, 'detalhe_entrega', delivery.detalhe_entrega)">
+                        (click)="startEdit(testStatus.squad_name, 'observacoes', testStatus.observacoes || '')"
+                        [disabled]="!canEditSquad(testStatus.squad_name)">
                   Editar
                 </button>
               </div>
@@ -161,8 +155,9 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="squadDeliveries.length === 0" class="empty-state">
-      <p>Nenhuma squad encontrada para esta release.</p>
+    <div *ngIf="testStatuses.length === 0" class="empty-state">
+      <p>Nenhum status de teste encontrado para esta release.</p>
+      <button class="add-squad-btn" (click)="addNewSquad()">Adicionar Primeira Squad</button>
     </div>
   </div>
 </div>
