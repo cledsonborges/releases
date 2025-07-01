@@ -12,6 +12,7 @@ from src.routes.reports import reports_bp
 from src.routes.release_test_data import release_test_data_bp
 from src.routes.simplified_releases import simplified_releases_bp
 from src.routes.database_management import database_management_bp
+from src.routes.release_test_status import release_test_status_bp
 
 app = Flask(__name__)
 
@@ -28,6 +29,7 @@ app.register_blueprint(reports_bp, url_prefix="/api")
 app.register_blueprint(release_test_data_bp, url_prefix="/api")
 app.register_blueprint(simplified_releases_bp, url_prefix="/api")
 app.register_blueprint(database_management_bp, url_prefix="/api")
+app.register_blueprint(release_test_status_bp, url_prefix="/api")
 
 # Rota de health check
 @app.route("/api/health", methods=["GET"])

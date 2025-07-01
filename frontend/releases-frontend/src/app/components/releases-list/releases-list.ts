@@ -198,6 +198,12 @@ export class ReleasesListComponent implements OnInit, OnDestroy {
     console.log('Navegar para o Report Portal');
   }
 
+  goToTestStatus(): void {
+    if (this.selectedRelease) {
+      this.router.navigate(['/release', this.selectedRelease.release_id, 'test-status']);
+    }
+  }
+
   updateRelease(): void {
     console.log('Atualizar release', this.selectedRelease);
   }

@@ -352,6 +352,43 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  // Release Test Status API
+  getReleaseTestStatuses(releaseId: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-status`);
+  }
+
+  createOrUpdateTestStatus(releaseId: string, testStatusData: any): Observable<ApiResponse<{test_status_id: string}>> {
+    return this.http.post<ApiResponse<{test_status_id: string}>>(`${this.baseUrl}/releases/${releaseId}/test-status`, 
+      testStatusData, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getSquadTestStatus(releaseId: string, squadName: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-status/${squadName}`);
+  }
+
+  updateTestStatus(testStatusId: string, updateData: any): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/test-status/${testStatusId}`, 
+      updateData, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  deleteTestStatus(testStatusId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/test-status/${testStatusId}`);
+  }
+
+  getTestStatusSummary(releaseId: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/test-status/summary`);
+  }
+
+  initTestStatusDatabase(): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/init-test-status-db`, {}, 
+      { headers: this.getHeaders() }
+    );
+  }
 }
 
 

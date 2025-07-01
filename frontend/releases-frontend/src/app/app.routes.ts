@@ -9,6 +9,7 @@ import { ReleasesTableComponent } from './components/releases-table/releases-tab
 import { DemoComponent } from './components/demo/demo';
 import { SimplifiedReleasesListComponent } from './components/simplified-releases-list/simplified-releases-list';
 import { SimplifiedReleaseDetailComponent } from './components/simplified-release-detail/simplified-release-detail';
+import { ReleaseTestStatusComponent } from './components/release-test-status/release-test-status';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -17,6 +18,7 @@ export const routes: Routes = [
   { path: 'admin', component: AdminPanelComponent },
   { path: 'releases', component: ReleasesListComponent },
   { path: 'release/:id', component: ReleaseDetailComponent },
+  { path: 'release/:id/test-status', component: ReleaseTestStatusComponent },
   { path: 'squads', component: SquadManagementComponent },
   { path: 'demo', component: DemoComponent },
   { path: 'homolog', component: SimplifiedReleasesListComponent }, // Redirecionado para a nova lista simplificada
