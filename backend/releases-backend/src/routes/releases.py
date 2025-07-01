@@ -322,31 +322,15 @@ def get_squad_deliveries(release_id):
             "error": str(e)
         }), 500
 
-@releases_bp.route("/releases/<release_id>/status", methods=["PUT"])
-def update_release_status(release_id):
+@releases_bp.route("/simplified-releases/squad-status/<squad_status_id>", methods=["PUT"])
+def update_squad_status(squad_status_id):
     """Atualiza status de entrega (para Time de Qualidade)"""
     try:
         data = request.get_json()
         
-        # Verificar se SLA ainda está ativo
-        sla_status = release_model.check_sla_status(release_id)
-        if sla_status == 'expired':
-            return jsonify({
-                'success': False,
-                'error': 'SLA vencido. Não é possível editar esta release.'
-            }), 403
-        
-        squad_id = data.get("squad_id")
-        if not squad_id:
-            return jsonify({
-                'success': False,
-                'error': 'squad_id é obrigatório para atualizar o status da squad'
-            }), 400
-
         # Construir a chave primária para a tabela squad_status
         key = {
-            'release_id': release_id,
-            'squad_id': squad_id
+            'squad_status_id': squad_status_id
         }
 
         # Filtrar apenas os campos permitidos para atualização

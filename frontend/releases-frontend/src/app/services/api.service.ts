@@ -99,7 +99,7 @@ export interface SquadDelivery {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:5003/api';
+  private baseUrl = 'https://5000-i83e93ioxekpditvnugg8-0237d6d7.manus.computer/api';
 
   constructor(private http: HttpClient) {}
 
@@ -336,7 +336,7 @@ export class ApiService {
   }
 
   updateSquadStatus(squadStatusId: string, updateData: any): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/squad-status/${squadStatusId}`, 
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/simplified-releases/squad-status/${squadStatusId}`, 
       updateData, 
       { headers: this.getHeaders() }
     );
