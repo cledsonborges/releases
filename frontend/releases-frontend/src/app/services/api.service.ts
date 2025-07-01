@@ -99,7 +99,7 @@ export interface SquadDelivery {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://releases-three.vercel.app/api';
+  private baseUrl = 'http://localhost:5003/api';
 
   constructor(private http: HttpClient) {}
 
@@ -303,8 +303,6 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
-}
-
 
   // Simplified Releases API
   getSimplifiedReleases(): Observable<ApiResponse<any[]>> {
@@ -354,4 +352,6 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+}
+
 

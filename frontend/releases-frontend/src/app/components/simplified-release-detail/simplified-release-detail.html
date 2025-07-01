@@ -132,11 +132,11 @@
 
               <!-- Ações -->
               <td *ngIf="canEdit()">
-                <div *ngIf="isEditing(squadStatus.squad_status_id, editingField)" class="edit-actions">
+                <div *ngIf="editingField && isEditing(squadStatus.squad_status_id, editingField!)" class="edit-actions">
                   <button class="save-button" (click)="saveEdit()">Salvar</button>
                   <button class="cancel-button" (click)="cancelEdit()">Cancelar</button>
                 </div>
-                <div *ngIf="!isEditing(squadStatus.squad_status_id, editingField)" class="view-actions">
+                <div *ngIf="editingField && !isEditing(squadStatus.squad_status_id, editingField!)" class="view-actions">
                   <button class="edit-button" 
                           (click)="startEdit(squadStatus.squad_status_id, 'squad', squadStatus.squad)">
                     Editar
@@ -158,4 +158,5 @@
     </div>
   </div>
 </div>
+
 
