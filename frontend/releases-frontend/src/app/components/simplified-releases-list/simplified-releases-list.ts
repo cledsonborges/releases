@@ -26,20 +26,20 @@ export class SimplifiedReleasesListComponent implements OnInit {
   releases: SimplifiedRelease[] = [];
   filteredReleases: SimplifiedRelease[] = [];
   loading = true;
-  error = "";
-  success = "";
+  error = '';
+  success = '';
   
   // Filtros
-  statusFilter = "";
-  squadFilter = "";
+  statusFilter = '';
+  squadFilter = '';
   
   // Status disponíveis
   statusOptions = [
-    { value: "", label: "Todos os status" },
-    { value: "em_andamento", label: "Em Andamento", color: "#f59e0b" },
-    { value: "concluido", label: "Concluído", color: "#10b981" },
-    { value: "concluido_com_bugs", label: "Concluído com Bugs", color: "#f97316" },
-    { value: "bloqueado", label: "Bloqueado", color: "#ef4444" }
+    { value: '', label: 'Todos os status' },
+    { value: 'em_andamento', label: 'Em Andamento', color: '#f59e0b' },
+    { value: 'concluido', label: 'Concluído', color: '#10b981' },
+    { value: 'concluido_com_bugs', label: 'Concluído com Bugs', color: '#f97316' },
+    { value: 'bloqueado', label: 'Bloqueado', color: '#ef4444' }
   ];
 
   constructor(
@@ -54,7 +54,7 @@ export class SimplifiedReleasesListComponent implements OnInit {
 
   loadReleases() {
     this.loading = true;
-    this.error = "";
+    this.error = '';
     
     this.apiService.getSimplifiedReleases().subscribe({
       next: (response) => {
@@ -62,14 +62,14 @@ export class SimplifiedReleasesListComponent implements OnInit {
           this.releases = response.data;
           this.applyFilters();
         } else {
-          this.error = response.error || "Erro ao carregar releases";
+          this.error = response.error || 'Erro ao carregar releases';
         }
         this.loading = false;
       },
       error: (err) => {
-        this.error = "Erro ao conectar com a API";
+        this.error = 'Erro ao conectar com a API';
         this.loading = false;
-        console.error("Erro:", err);
+        console.error('Erro:', err);
       }
     });
   }
@@ -88,8 +88,8 @@ export class SimplifiedReleasesListComponent implements OnInit {
   }
 
   clearFilters() {
-    this.statusFilter = "";
-    this.squadFilter = "";
+    this.statusFilter = '';
+    this.squadFilter = '';
     this.applyFilters();
   }
 
@@ -103,7 +103,7 @@ export class SimplifiedReleasesListComponent implements OnInit {
 
   getStatusColor(status: string): string {
     const statusOption = this.statusOptions.find(s => s.value === status);
-    return statusOption?.color || "#6b7280";
+    return statusOption?.color || '#6b7280';
   }
 
   getStatusLabel(status: string): string {
@@ -113,26 +113,27 @@ export class SimplifiedReleasesListComponent implements OnInit {
 
   canCreate(): boolean {
     const user = this.authService.getCurrentUser();
-    return user && (user.role === 'admin' || user.role === 'quality_team');
+    return !!user && (user.role === 'admin' || user.role === 'quality_team');
   }
 
   initializeDatabase() {
     this.apiService.initSimplifiedDatabase().subscribe({
       next: (response) => {
         if (response.success) {
-          this.success = "Banco de dados simplificado inicializado com sucesso!";
+          this.success = 'Banco de dados simplificado inicializado com sucesso!';
           setTimeout(() => {
-            this.success = "";
+            this.success = '';
           }, 3000);
         } else {
-          this.error = response.error || "Erro ao inicializar banco de dados";
+          this.error = response.error || 'Erro ao inicializar banco de dados';
         }
       },
       error: (err) => {
-        this.error = "Erro ao conectar com a API";
-        console.error("Erro:", err);
+        this.error = 'Erro ao conectar com a API';
+        console.error('Erro:', err);
       }
     });
   }
 }
+
 

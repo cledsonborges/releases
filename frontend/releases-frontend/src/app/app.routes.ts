@@ -7,6 +7,8 @@ import { SquadManagementComponent } from './components/squad-management/squad-ma
 import { ReleasesListComponent } from './components/releases-list/releases-list';
 import { ReleasesTableComponent } from './components/releases-table/releases-table';
 import { DemoComponent } from './components/demo/demo';
+import { SimplifiedReleasesListComponent } from './components/simplified-releases-list/simplified-releases-list';
+import { SimplifiedReleaseDetailComponent } from './components/simplified-release-detail/simplified-release-detail';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -17,8 +19,11 @@ export const routes: Routes = [
   { path: 'release/:id', component: ReleaseDetailComponent },
   { path: 'squads', component: SquadManagementComponent },
   { path: 'demo', component: DemoComponent },
-  { path: 'homolog', component: ReleasesTableComponent },
+  { path: 'homolog', component: SimplifiedReleasesListComponent }, // Redirecionado para a nova lista simplificada
+  { path: 'simplified-releases', component: SimplifiedReleasesListComponent },
+  { path: 'simplified-release/:id', component: SimplifiedReleaseDetailComponent },
   { path: 'alpha', component: ReleasesTableComponent },
   { path: '**', redirectTo: '/login' }
 ];
+
 
