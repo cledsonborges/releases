@@ -99,7 +99,7 @@ export interface SquadDelivery {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://5000-i83e93ioxekpditvnugg8-0237d6d7.manus.computer/api';
+   private baseUrl = 'https://releases-three.vercel.app/api';
 
   constructor(private http: HttpClient) {}
 
