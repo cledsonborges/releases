@@ -336,21 +336,36 @@ def update_release_status(release_id):
                 'error': 'SLA vencido. Não é possível editar esta release.'
             }), 403
         
+        squad_id = data.get("squad_id")
+        if not squad_id:
+            return jsonify({
+                'success': False,
+                'error': 'squad_id é obrigatório para atualizar o status da squad'
+            }), 400
+
+        # Construir a chave primária para a tabela squad_status
+        key = {
+            'release_id': release_id,
+            'squad_id': squad_id
+        }
+
+        # Filtrar apenas os campos permitidos para atualização
         allowed_fields = ['status', 'detalhe_entrega', 'responsavel', 'modulo', 'bugs_reportados']
         update_data = {k: v for k, v in data.items() if k in allowed_fields}
-        
+
         if not update_data:
             return jsonify({
                 'success': False,
                 'error': 'Nenhum campo válido para atualização'
             }), 400
-        
-        success = release_model.update_release(release_id, update_data)
-        
+
+        # Atualizar o item na tabela squad_status
+        success = release_model.update_squad_status(key, update_data)
+
         if success:
             return jsonify({
                 'success': True,
-                'message': 'Status atualizado com sucesso'
+                'message': 'Status da squad atualizado com sucesso'
             }), 200
         else:
             return jsonify({
