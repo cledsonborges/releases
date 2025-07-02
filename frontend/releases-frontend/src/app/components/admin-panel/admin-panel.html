@@ -116,9 +116,33 @@
               />
             </div>
             
-
+            <div class="form-group">
+              <label for="responsavel">Responsável *</label>
+              <input
+                type="text"
+                id="responsavel"
+                name="responsavel"
+                [(ngModel)]="newRelease.responsavel"
+                required
+                placeholder="Nome do responsável"
+              />
+            </div>
             
-
+            <div class="form-group">
+              <label for="status">Status *</label>
+              <select
+                id="status"
+                name="status"
+                [(ngModel)]="newRelease.status"
+                required
+              >
+                <option value="">Selecione o status</option>
+                <option value="em andamento">Em Andamento</option>
+                <option value="concluído">Concluído</option>
+                <option value="bloqueado">Bloqueado</option>
+                <option value="concluido com bugs">Concluído com Bugs</option>
+              </select>
+            </div>
             
             <div class="form-group full-width">
               <label for="description">Descrição</label>
@@ -181,47 +205,3 @@
   </div>
 </div>
 
-
-
-            <div class="form-group">
-              <label for="linkPlanoTestes">Link Plano de Testes</label>
-              <input
-                type="text"
-                id="linkPlanoTestes"
-                name="linkPlanoTestes"
-                [(ngModel)]="newRelease.link_plano_testes"
-                placeholder="Link para o plano de testes"
-              />
-            </div>
-            
-            <div class="form-group">
-              <label for="qrcodeAlpha">QR Code Alpha</label>
-              <input
-                type="text"
-                id="qrcodeAlpha"
-                name="qrcodeAlpha"
-                [(ngModel)]="newRelease.qrcode_alpha"
-                placeholder="QR Code para ambiente Alpha"
-              />
-            </div>
-            
-            <div class="form-group">
-              <label for="qrcodeHomolog">QR Code Homolog</label>
-              <input
-                type="text"
-                id="qrcodeHomolog"
-                name="qrcodeHomolog"
-                [(ngModel)]="newRelease.qrcode_homolog"
-                placeholder="QR Code para ambiente de Homologação"
-              />
-            </div>
-            
-            <div class="form-group">
-              <input
-                type="checkbox"
-                id="releaseExclusiva"
-                name="releaseExclusiva"
-                [(ngModel)]="newRelease.release_exclusiva"
-              />
-              <label for="releaseExclusiva">Release Exclusiva</label>
-            </div>
