@@ -64,6 +64,7 @@ class ReleaseModel(DynamoDBModel):
             elif isinstance(squad, dict):
                 # Se já for dict (novo formato), garantir que tem todos os campos
                 processed_squads.append({
+                    'squad_id': str(uuid.uuid4()),
                     'nome': squad.get('nome', ''),
                     'responsavel': squad.get('responsavel', ''),
                     'status': squad.get('status', 'Não iniciado')
@@ -188,20 +189,19 @@ class ReleaseModel(DynamoDBModel):
             print(f"Erro ao verificar SLA: {e}")
             return None
     
-    def update_squad_participante_status(self, release_id, squad_nome, update_data):
+    def update_squad_participante_status(self, release_id, squad_id, update_data):
         """Atualiza o status de uma squad participante específica"""
         try:
             release = self.get_release(release_id)
             if not release:
                 return False
             
-            squads_participantes = release.get('squads_participantes', [])
+            squads_participantes = release.get("squads_participantes", [])
             updated = False
             
-            print(f"Buscando squad: {squad_nome} na release {release_id}")
-            print(f"Squads participantes na release: {squads_participantes}")
             for squad in squads_participantes:
-                if isinstance(squad, dict) and squad.get("nome") == squad_nome:                    # Atualizar campos permitidos
+                if isinstance(squad, dict) and squad.get("squad_id") == squad_id:
+                    # Atualizar campos permitidos
                     if 'responsavel' in update_data:
                         squad['responsavel'] = update_data['responsavel']
                     if 'status' in update_data:
