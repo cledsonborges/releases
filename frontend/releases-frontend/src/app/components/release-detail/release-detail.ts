@@ -2,34 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Release, Squad } from '../../services/api.service';
+import { ApiService, Release, SquadParticipante } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
-
-// Interface para dados de status de teste por squad
-interface TestStatus {
-  test_status_id?: string;
-  release_id: string;
-  squad_name: string;
-  responsavel: string;
-  status: string;
-  observacoes?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// Interface para dados da release com status de testes
-interface ReleaseWithTestStatus {
-  release_id: string;
-  release_name: string;
-  ambiente: string;
-  versao_firebase: string;
-  liberado_em: string;
-  link_plano_testes: string;
-  qrcode_alpha: string;
-  qrcode_homolog: string;
-  release_exclusiva: boolean;
-  test_statuses: TestStatus[];
-}
 
 @Component({
   selector: 'app-release-detail',
@@ -40,8 +14,7 @@ interface ReleaseWithTestStatus {
 })
 export class ReleaseDetailComponent implements OnInit {
   release: Release | null = null;
-  releaseWithTestStatus: ReleaseWithTestStatus | null = null;
-  testStatuses: TestStatus[] = [];
+  squadsParticipantes: SquadParticipante[] = [];
   loading = true;
   saving = false;
   error = "";
@@ -55,10 +28,10 @@ export class ReleaseDetailComponent implements OnInit {
   
   // Status disponíveis
   statusOptions = [
-    { value: "nao_iniciado", label: "Não Iniciado", color: "#6b7280" },
-    { value: "em_andamento", label: "Em Andamento", color: "#f59e0b" },
-    { value: "concluido", label: "Concluído", color: "#10b981" },
-    { value: "concluido_com_bugs", label: "Concluído com Bugs", color: "#f97316" }
+    { value: "Não iniciado", label: "Não Iniciado", color: "#6b7280" },
+    { value: "em andamento", label: "Em Andamento", color: "#f59e0b" },
+    { value: "finalizado", label: "Finalizado", color: "#10b981" },
+    { value: "finalizado com bugs", label: "Finalizado com Bugs", color: "#f97316" }
   ];
 
   constructor(
@@ -72,27 +45,22 @@ export class ReleaseDetailComponent implements OnInit {
     this.route.params.subscribe(params => {
       const releaseId = params["id"];
       if (releaseId) {
-        this.loadReleaseTestStatuses(releaseId);
+        this.loadReleaseDetails(releaseId);
       }
     });
   }
 
-  loadReleaseTestStatuses(releaseId: string) {
+  loadReleaseDetails(releaseId: string) {
     this.loading = true;
     this.error = "";
     
-    this.apiService.getReleaseTestStatuses(releaseId).subscribe({
+    this.apiService.getRelease(releaseId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.releaseWithTestStatus = response.data;
-          this.testStatuses = response.data.test_statuses || [];
-          
-          // Se não há status de testes, criar alguns exemplos
-          if (this.testStatuses.length === 0) {
-            this.initializeDefaultTestStatuses(releaseId);
-          }
+          this.release = response.data;
+          this.squadsParticipantes = response.data.squads_participantes || [];
         } else {
-          this.error = response.error || "Erro ao carregar status de testes da release";
+          this.error = response.error || "Erro ao carregar detalhes da release";
         }
         this.loading = false;
       },
@@ -104,32 +72,11 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
-  initializeDefaultTestStatuses(releaseId: string) {
-    // Criar alguns status de exemplo se não existirem
-    const defaultSquads = [
-      { name: "Sala de Integração", responsavel: "Cledson" },
-      { name: "Squad Alpha", responsavel: "Edilson Cordeiro" },
-      { name: "Squad Beta", responsavel: "" },
-      { name: "Squad Gama", responsavel: "Mariah Schevenin" }
-    ];
-
-    defaultSquads.forEach(squad => {
-      const testStatus: TestStatus = {
-        release_id: releaseId,
-        squad_name: squad.name,
-        responsavel: squad.responsavel,
-        status: 'nao_iniciado',
-        observacoes: ''
-      };
-      this.testStatuses.push(testStatus);
-    });
-  }
-
   canEditSquad(squadName: string): boolean {
     // Em produção, implementar lógica real de permissões
     // Por enquanto, permite editar apenas squads que o usuário é responsável
-    const testStatus = this.testStatuses.find(ts => ts.squad_name === squadName);
-    return testStatus?.responsavel === this.currentUser || !testStatus?.responsavel;
+    const squad = this.squadsParticipantes.find(s => s.nome === squadName);
+    return squad?.responsavel === this.currentUser || !squad?.responsavel;
   }
 
   isEditing(squadName: string, field: string): boolean {
@@ -153,49 +100,38 @@ export class ReleaseDetailComponent implements OnInit {
   }
 
   saveEdit() {
-    if (!this.editingSquadName || !this.editingField || !this.releaseWithTestStatus) {
+    if (!this.editingSquadName || !this.editingField || !this.release) {
       return;
     }
 
     this.saving = true;
     this.error = '';
 
-    const testStatusData = {
-      squad_name: this.editingSquadName,
-      responsavel: this.editingField === 'responsavel' ? this.editingValue : 
-                   this.getTestStatusBySquad(this.editingSquadName)?.responsavel || '',
-      status: this.editingField === 'status' ? this.editingValue : 
-              this.getTestStatusBySquad(this.editingSquadName)?.status || 'nao_iniciado',
-      observacoes: this.editingField === 'observacoes' ? this.editingValue : 
-                   this.getTestStatusBySquad(this.editingSquadName)?.observacoes || ''
-    };
-
-    // Se estamos editando o responsável, atualizar também
-    if (this.editingField === 'responsavel') {
-      testStatusData.responsavel = this.editingValue;
+    const squadToUpdate = this.squadsParticipantes.find(s => s.nome === this.editingSquadName);
+    if (!squadToUpdate) {
+      this.error = 'Squad não encontrada.';
+      this.saving = false;
+      return;
     }
 
-    this.apiService.createOrUpdateTestStatus(this.releaseWithTestStatus.release_id, testStatusData).subscribe({
+    const updateData: Partial<SquadParticipante> = {};
+    if (this.editingField === 'responsavel') {
+      updateData.responsavel = this.editingValue;
+    } else if (this.editingField === 'status') {
+      updateData.status = this.editingValue;
+    }
+
+    this.apiService.updateSquadParticipanteStatus(this.release.release_id!, squadToUpdate.nome, updateData).subscribe({
       next: (response) => {
         if (response.success) {
           // Atualizar o status local
-          const existingIndex = this.testStatuses.findIndex(ts => ts.squad_name === this.editingSquadName);
-          if (existingIndex >= 0) {
-            this.testStatuses[existingIndex] = {
-              ...this.testStatuses[existingIndex],
-              ...testStatusData,
-              test_status_id: response.data?.test_status_id || this.testStatuses[existingIndex].test_status_id
-            };
-          } else {
-            // Adicionar novo status
-            this.testStatuses.push({
-              test_status_id: response.data?.test_status_id,
-              release_id: this.releaseWithTestStatus!.release_id,
-              ...testStatusData
-            });
+          if (this.editingField === 'responsavel') {
+            squadToUpdate.responsavel = this.editingValue;
+          } else if (this.editingField === 'status') {
+            squadToUpdate.status = this.editingValue;
           }
           
-          this.success = 'Status atualizado com sucesso!';
+          this.success = 'Status da squad atualizado com sucesso!';
           this.cancelEdit();
           
           // Limpar mensagem de sucesso após 3 segundos
@@ -213,10 +149,6 @@ export class ReleaseDetailComponent implements OnInit {
         console.error('Erro:', error);
       }
     });
-  }
-
-  getTestStatusBySquad(squadName: string): TestStatus | undefined {
-    return this.testStatuses.find(ts => ts.squad_name === squadName);
   }
 
   getStatusLabel(status: string): string {
@@ -252,40 +184,12 @@ export class ReleaseDetailComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/releases']);
+    this.router.navigate(['/dashboard']);
   }
 
   addNewSquad() {
-    const newSquadName = prompt('Nome da nova squad:');
-    if (newSquadName && newSquadName.trim()) {
-      const testStatus: TestStatus = {
-        release_id: this.releaseWithTestStatus!.release_id,
-        squad_name: newSquadName.trim(),
-        responsavel: this.currentUser,
-        status: 'nao_iniciado',
-        observacoes: ''
-      };
-      
-      this.saving = true;
-      this.apiService.createOrUpdateTestStatus(this.releaseWithTestStatus!.release_id, testStatus).subscribe({
-        next: (response) => {
-          if (response.success) {
-            testStatus.test_status_id = response.data?.test_status_id;
-            this.testStatuses.push(testStatus);
-            this.success = 'Squad adicionada com sucesso!';
-            setTimeout(() => this.success = '', 3000);
-          } else {
-            this.error = response.error || 'Erro ao adicionar squad';
-          }
-          this.saving = false;
-        },
-        error: (error) => {
-          this.error = 'Erro ao adicionar squad';
-          this.saving = false;
-          console.error('Erro:', error);
-        }
-      });
-    }
+    // Esta função não será mais usada para adicionar squads diretamente aqui
+    // As squads virão da release principal
+    alert('A adição de novas squads deve ser feita na criação da release.');
   }
 }
-

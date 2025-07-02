@@ -6,9 +6,9 @@
         <button class="back-button" (click)="goBack()">
           ← Voltar
         </button>
-        <div class="release-info" *ngIf="releaseWithTestStatus">
-          <h1>{{ releaseWithTestStatus.release_name }}</h1>
-          <p class="release-subtitle">Status dos Testes por Squad</p>
+        <div class="release-info" *ngIf="release">
+          <h1>{{ release.release_name }}</h1>
+          <p class="release-subtitle">Squads Participantes</p>
         </div>
       </div>
       <div class="header-right">
@@ -20,7 +20,7 @@
   <!-- Loading -->
   <div *ngIf="loading" class="loading">
     <div class="spinner"></div>
-    <p>Carregando status de testes...</p>
+    <p>Carregando detalhes da release...</p>
   </div>
 
   <!-- Error Message -->
@@ -36,30 +36,27 @@
   </div>
 
   <!-- Release Details -->
-  <div *ngIf="!loading && releaseWithTestStatus" class="release-details">
+  <div *ngIf="!loading && release" class="release-details">
     <!-- Release Info Card -->
     <div class="release-info-card">
       <div class="info-item">
         <span class="label">Release:</span>
-        <span class="value">{{ releaseWithTestStatus.release_name }}</span>
+        <span class="value">{{ release.release_name }}</span>
       </div>
       <div class="info-item">
         <span class="label">Versão Firebase:</span>
-        <span class="value">{{ releaseWithTestStatus.versao_firebase || 'N/A' }}</span>
+        <span class="value">{{ release.versao_firebase || 'N/A' }}</span>
       </div>
       <div class="info-item">
         <span class="label">Liberado em:</span>
-        <span class="value">{{ formatDate(releaseWithTestStatus.liberado_em) }}</span>
+        <span class="value">{{ formatDate(release.liberado_em) }}</span>
       </div>
     </div>
 
-    <!-- Test Status Table -->
+    <!-- Squads Participantes Table -->
     <div class="table-container">
       <div class="table-header">
-        <h3>Status dos Testes por Squad</h3>
-        <button class="add-squad-btn" (click)="addNewSquad()" [disabled]="saving">
-          + Adicionar Squad
-        </button>
+        <h3>Squads Participantes</h3>
       </div>
       
       <table class="test-status-table">
@@ -68,26 +65,25 @@
             <th>Squad</th>
             <th>Responsável</th>
             <th>Status</th>
-            <th>Observações</th>
             <th *ngIf="canEdit()">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let testStatus of testStatuses" class="test-status-row">
+          <tr *ngFor="let squad of squadsParticipantes" class="test-status-row">
             <!-- Squad -->
             <td class="squad-name">
-              <strong>{{ testStatus.squad_name }}</strong>
+              <strong>{{ squad.nome }}</strong>
             </td>
             
             <!-- Responsável -->
             <td class="responsavel-cell">
-              <span *ngIf="!isEditing(testStatus.squad_name, 'responsavel')"
+              <span *ngIf="!isEditing(squad.nome, 'responsavel')"
                     class="responsavel-text"
-                    (click)="startEdit(testStatus.squad_name, 'responsavel', testStatus.responsavel)">
-                {{ testStatus.responsavel || 'Clique para adicionar responsável' }}
+                    (click)="startEdit(squad.nome, 'responsavel', squad.responsavel)">
+                {{ squad.responsavel || 'Clique para adicionar responsável' }}
               </span>
               <input 
-                *ngIf="isEditing(testStatus.squad_name, 'responsavel')"
+                *ngIf="isEditing(squad.nome, 'responsavel')"
                 type="text" 
                 [(ngModel)]="editingValue"
                 class="edit-input"
@@ -98,14 +94,14 @@
             
             <!-- Status -->
             <td class="status-cell">
-              <span *ngIf="!isEditing(testStatus.squad_name, 'status')" 
+              <span *ngIf="!isEditing(squad.nome, 'status')" 
                     class="status-badge"
-                    [style.background-color]="getStatusColor(testStatus.status)"
-                    (click)="canEditSquad(testStatus.squad_name) && startEdit(testStatus.squad_name, 'status', testStatus.status)">
-                {{ getStatusLabel(testStatus.status) }}
+                    [style.background-color]="getStatusColor(squad.status)"
+                    (click)="canEditSquad(squad.nome) && startEdit(squad.nome, 'status', squad.status)">
+                {{ getStatusLabel(squad.status) }}
               </span>
               <select 
-                *ngIf="isEditing(testStatus.squad_name, 'status')"
+                *ngIf="isEditing(squad.nome, 'status')"
                 [(ngModel)]="editingValue"
                 class="edit-select"
                 (change)="saveEdit()"
@@ -116,35 +112,18 @@
               </select>
             </td>
             
-            <!-- Observações -->
-            <td class="observacoes-cell">
-              <span *ngIf="!isEditing(testStatus.squad_name, 'observacoes')" 
-                    class="observacoes-text"
-                    (click)="canEditSquad(testStatus.squad_name) && startEdit(testStatus.squad_name, 'observacoes', testStatus.observacoes || '')">
-                {{ testStatus.observacoes || 'Clique para adicionar observações' }}
-              </span>
-              <textarea 
-                *ngIf="isEditing(testStatus.squad_name, 'observacoes')"
-                [(ngModel)]="editingValue"
-                class="edit-textarea"
-                (keyup.enter)="saveEdit()"
-                (keyup.escape)="cancelEdit()"
-                rows="2"
-                #editObservacoes></textarea>
-            </td>
-            
             <!-- Ações -->
             <td *ngIf="canEdit()" class="actions-cell">
-              <div *ngIf="isEditing(testStatus.squad_name, editingField!)" class="edit-actions">
+              <div *ngIf="isEditing(squad.nome, editingField!)" class="edit-actions">
                 <button class="save-btn" (click)="saveEdit()" [disabled]="saving">
                   {{ saving ? 'Salvando...' : 'Salvar' }}
                 </button>
                 <button class="cancel-btn" (click)="cancelEdit()" [disabled]="saving">Cancelar</button>
               </div>
-              <div *ngIf="!isEditing(testStatus.squad_name, editingField!)" class="view-actions">
+              <div *ngIf="!isEditing(squad.nome, editingField!)" class="view-actions">
                 <button class="edit-btn" 
-                        (click)="startEdit(testStatus.squad_name, 'observacoes', testStatus.observacoes || '')"
-                        [disabled]="!canEditSquad(testStatus.squad_name)">
+                        (click)="startEdit(squad.nome, 'responsavel', squad.responsavel || '')"
+                        [disabled]="!canEditSquad(squad.nome)">
                   Editar
                 </button>
               </div>
@@ -155,10 +134,8 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="testStatuses.length === 0" class="empty-state">
-      <p>Nenhum status de teste encontrado para esta release.</p>
-      <button class="add-squad-btn" (click)="addNewSquad()">Adicionar Primeira Squad</button>
+    <div *ngIf="squadsParticipantes.length === 0" class="empty-state">
+      <p>Nenhuma squad participante encontrada para esta release.</p>
     </div>
   </div>
 </div>
-

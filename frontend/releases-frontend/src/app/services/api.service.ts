@@ -30,7 +30,7 @@ export interface Release {
   qrcode_homolog?: string;
   qrcode_alpha?: string;
   release_exclusiva?: boolean;
-  squads_participantes?: string[];
+  squads_participantes?: SquadParticipante[];
   entregas?: any[];
   created_at?: string;
   updated_at?: string;
@@ -38,6 +38,12 @@ export interface Release {
   detalhe_entrega?: string;
   modulo?: string;
   bugs_reportados?: number;
+}
+
+export interface SquadParticipante {
+  nome: string;
+  responsavel: string;
+  status: string;
 }
 
 export interface Squad {
@@ -349,6 +355,13 @@ export class ApiService {
   // Initialize Simplified Database
   initSimplifiedDatabase(): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.baseUrl}/init-simplified-db`, {}, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateSquadParticipanteStatus(releaseId: string, squadName: string, updateData: Partial<SquadParticipante>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/squads/${squadName}/status`, 
+      updateData, 
       { headers: this.getHeaders() }
     );
   }
