@@ -97,7 +97,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToReleaseDetail(releaseId: string): void {
-    this.router.navigate(['/release', releaseId]);
+    this.router.navigate(["/release", releaseId]);
   }
 
   navigateToHomolog(): void {
