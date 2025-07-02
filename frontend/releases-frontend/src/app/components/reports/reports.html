@@ -3,24 +3,55 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>assessment</mat-icon>
-        Relatório de Squads que Não Testaram
+        Relatório de Squads
       </mat-card-title>
       <mat-card-subtitle>
-        Lista de squads que não iniciaram os testes em releases específicas
+        Lista de squads que não iniciaram ou estão em andamento e venceram o SLA
       </mat-card-subtitle>
     </mat-card-header>
     
     <mat-card-content>
       <div class="actions-bar">
-        <button mat-raised-button color="primary" (click)="loadNotTestedReport()" [disabled]="loading">
+        <button mat-raised-button color="primary" (click)="loadReportData()" [disabled]="loading">
           <mat-icon>refresh</mat-icon>
           Atualizar Dados
         </button>
         
-        <button mat-raised-button color="accent" (click)="exportToCSV()" [disabled]="notTestedReport.length === 0">
+        <button mat-raised-button color="accent" (click)="exportToCSV()" [disabled]="filteredReportData.length === 0">
           <mat-icon>download</mat-icon>
           Exportar CSV
         </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filters-section">
+        <h3>Filtros</h3>
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filtrar por Release</mat-label>
+            <mat-select [(value)]="selectedRelease" (selectionChange)="onReleaseFilterChange()">
+              <mat-option value="">Todas as Releases</mat-option>
+              <mat-option *ngFor="let release of availableReleases" [value]="release">
+                {{release}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filtrar por Squad</mat-label>
+            <mat-select [(value)]="selectedSquad" (selectionChange)="onSquadFilterChange()">
+              <mat-option value="">Todas as Squads</mat-option>
+              <mat-option *ngFor="let squad of availableSquads" [value]="squad">
+                {{squad}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-stroked-button (click)="clearFilters()" class="clear-filters-btn">
+            <mat-icon>clear</mat-icon>
+            Limpar Filtros
+          </button>
+        </div>
       </div>
 
       <div class="loading-container" *ngIf="loading">
@@ -28,7 +59,7 @@
       </div>
 
       <div class="table-container" *ngIf="!loading">
-        <table mat-table [dataSource]="notTestedReport" class="mat-elevation-z8">
+        <table mat-table [dataSource]="filteredReportData" class="mat-elevation-z8">
           
           <ng-container matColumnDef="release_name">
             <th mat-header-cell *matHeaderCellDef>Release</th>
@@ -43,7 +74,14 @@
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let element">
-              <span class="status-badge status-not-started">{{element.status}}</span>
+              <span class="status-badge status-{{element.status | lowercase | replaceSpace}}">{{element.status}}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="sla_status">
+            <th mat-header-cell *matHeaderCellDef>Status SLA</th>
+            <td mat-cell *matCellDef="let element">
+              <span class="status-badge status-{{element.sla_status | lowercase | replaceSpace}}">{{element.sla_status}}</span>
             </td>
           </ng-container>
 
@@ -51,14 +89,18 @@
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
 
-        <div class="no-data" *ngIf="notTestedReport.length === 0 && !loading">
+        <div class="no-data" *ngIf="filteredReportData.length === 0 && !loading">
           <mat-icon>info</mat-icon>
-          <p>Nenhuma squad encontrada que não tenha testado em releases.</p>
+          <p>Nenhuma squad encontrada que se encaixe nos critérios do relatório e filtros aplicados.</p>
         </div>
       </div>
 
-      <div class="summary" *ngIf="notTestedReport.length > 0">
-        <p><strong>Total de registros:</strong> {{notTestedReport.length}}</p>
+      <div class="summary" *ngIf="filteredReportData.length > 0">
+        <p><strong>Total de registros:</strong> {{filteredReportData.length}} 
+          <span *ngIf="reportData.length !== filteredReportData.length">
+            (de {{reportData.length}} total)
+          </span>
+        </p>
       </div>
     </mat-card-content>
   </mat-card>
