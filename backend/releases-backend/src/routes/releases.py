@@ -404,7 +404,7 @@ def update_squad_participante_status(release_id, squad_nome):
         
         # Validar status se fornecido
         if 'status' in update_data:
-            valid_statuses = ['Não iniciado', 'em andamento', 'finalizado', 'finalizado com bugs']
+            valid_statuses = ['Não iniciado', 'Em andamento', 'Concluído', 'Concluído com bugs']
             if update_data['status'] not in valid_statuses:
                 return jsonify({
                     'success': False,
