@@ -198,9 +198,10 @@ class ReleaseModel(DynamoDBModel):
             squads_participantes = release.get('squads_participantes', [])
             updated = False
             
+            print(f"Buscando squad: {squad_nome} na release {release_id}")
+            print(f"Squads participantes na release: {squads_participantes}")
             for squad in squads_participantes:
-                if isinstance(squad, dict) and squad.get('nome') == squad_nome:
-                    # Atualizar campos permitidos
+                if isinstance(squad, dict) and squad.get("nome") == squad_nome:                    # Atualizar campos permitidos
                     if 'responsavel' in update_data:
                         squad['responsavel'] = update_data['responsavel']
                     if 'status' in update_data:
