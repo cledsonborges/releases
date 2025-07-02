@@ -22,9 +22,9 @@ export const routes: Routes = [
   { path: 'release/:id/test-status', component: ReleaseTestStatusComponent },
   { path: 'squads', component: SquadManagementComponent },
   { path: 'squads-participantes', component: SquadsParticipantesComponent },
-  { path: 'demo', component: DemoComponent },
-  { path: 'homolog', component: SimplifiedReleasesListComponent }, // Redirecionado para a nova lista simplificada
-  { path: 'simplified-releases', component: SimplifiedReleasesListComponent },
+ // { path: 'demo', component: DemoComponent },
+  { path: 'homolog', component: SquadsParticipantesComponent }, // Redirecionado para a nova lista simplificada
+ // { path: 'simplified-releases', component: SimplifiedReleasesListComponent },
   { path: 'simplified-release/:id', component: SimplifiedReleaseDetailComponent },
   { path: 'alpha', component: ReleasesTableComponent },
   { path: '**', redirectTo: '/login' }

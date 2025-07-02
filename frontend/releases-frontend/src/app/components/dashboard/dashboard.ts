@@ -85,7 +85,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToReleases(): void {
-    this.router.navigate(['/releases']);
+ //   this.router.navigate(['/releases']);
   }
 
   navigateToAdmin(): void {
@@ -97,7 +97,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToReleaseDetail(releaseId: string): void {
-    this.router.navigate(["/release", releaseId]);
+   // this.router.navigate(["/release", releaseId]);
   }
 
   navigateToHomolog(): void {

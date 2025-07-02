@@ -14,7 +14,7 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
         <button class="back-button" (click)="goBack()">
           ← Voltar
         </button>
-        <h1>Gerenciamento de Squads Participantes</h1>
+        <h1>Homologação</h1>
         <button class="refresh-button" (click)="loadReleases()" [disabled]="loading">
           🔄 Atualizar
         </button>

@@ -8,7 +8,7 @@
             <img src="assets/images/logo.png" alt="Ion Itaú" class="app-logo" />
           </div>
           <div class="header-text">
-            <h1>Sistema de Releases</h1>
+            <h1>Releases íon</h1>
             <p>Bem-vindo, <strong>{{ currentUser?.username || 'Usuário' }}</strong></p>
           </div>
         </div>
@@ -48,7 +48,7 @@
           <p>Painel administrativo</p>
         </div>
         
-        <div class="nav-card" (click)="navigateToReports()">
+        <div class="nav-card" (click)="navigateToReports()"  *ngIf="isAdmin()">
           <div class="nav-icon">📊</div>
           <h3>Relatórios</h3>
           <p>Visualizar relatórios e métricas</p>
