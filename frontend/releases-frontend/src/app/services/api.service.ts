@@ -41,6 +41,7 @@ export interface Release {
 }
 
 export interface SquadParticipante {
+  squad_id?: string;
   nome: string;
   responsavel: string;
   status: string;
@@ -359,8 +360,8 @@ export class ApiService {
     );
   }
 
-  updateSquadParticipanteStatus(releaseId: string, squadName: string, updateData: Partial<SquadParticipante>): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/squads/${squadName}/status`, 
+  updateSquadParticipanteStatus(releaseId: string, squadId: string, updateData: Partial<SquadParticipante>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/releases/${releaseId}/squads/${squadId}/status`, 
       updateData, 
       { headers: this.getHeaders() }
     );
