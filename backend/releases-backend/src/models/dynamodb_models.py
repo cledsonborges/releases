@@ -49,6 +49,26 @@ class ReleaseModel(DynamoDBModel):
         release_id = str(uuid.uuid4())
         current_time = datetime.now().isoformat()
         
+        # Processar squads_participantes para nova estrutura
+        squads_participantes = release_data.get('squads_participantes', [])
+        processed_squads = []
+        
+        for squad in squads_participantes:
+            if isinstance(squad, str):
+                # Se for string (formato antigo), converter para novo formato
+                processed_squads.append({
+                    'nome': squad,
+                    'responsavel': '',
+                    'status': 'Não iniciado'
+                })
+            elif isinstance(squad, dict):
+                # Se já for dict (novo formato), garantir que tem todos os campos
+                processed_squads.append({
+                    'nome': squad.get('nome', ''),
+                    'responsavel': squad.get('responsavel', ''),
+                    'status': squad.get('status', 'Não iniciado')
+                })
+        
         item = {
             'release_id': release_id,
             'release_name': release_data.get('release_name'),
@@ -68,7 +88,7 @@ class ReleaseModel(DynamoDBModel):
             'qrcode_homolog': release_data.get('qrcode_homolog'),
             'qrcode_alpha': release_data.get('qrcode_alpha'),
             'release_exclusiva': release_data.get('release_exclusiva', False),
-            'squads_participantes': release_data.get('squads_participantes', []),
+            'squads_participantes': processed_squads,
             'entregas': release_data.get('entregas', []),
             'created_at': current_time,
             'updated_at': current_time
@@ -167,6 +187,46 @@ class ReleaseModel(DynamoDBModel):
         except Exception as e:
             print(f"Erro ao verificar SLA: {e}")
             return None
+    
+    def update_squad_participante_status(self, release_id, squad_nome, update_data):
+        """Atualiza o status de uma squad participante específica"""
+        try:
+            release = self.get_release(release_id)
+            if not release:
+                return False
+            
+            squads_participantes = release.get('squads_participantes', [])
+            updated = False
+            
+            for squad in squads_participantes:
+                if isinstance(squad, dict) and squad.get('nome') == squad_nome:
+                    # Atualizar campos permitidos
+                    if 'responsavel' in update_data:
+                        squad['responsavel'] = update_data['responsavel']
+                    if 'status' in update_data:
+                        # Validar status
+                        valid_statuses = ['Não iniciado', 'em andamento', 'finalizado', 'finalizado com bugs']
+                        if update_data['status'] in valid_statuses:
+                            squad['status'] = update_data['status']
+                    updated = True
+                    break
+            
+            if updated:
+                # Atualizar a release com a nova lista de squads
+                self.table.update_item(
+                    Key={'release_id': release_id},
+                    UpdateExpression="SET squads_participantes = :squads, updated_at = :updated_at",
+                    ExpressionAttributeValues={
+                        ':squads': squads_participantes,
+                        ':updated_at': datetime.now().isoformat()
+                    }
+                )
+                return True
+            
+            return False
+        except Exception as e:
+            print(f"Erro ao atualizar status da squad: {e}")
+            return False
 
 class SquadModel(DynamoDBModel):
     """Modelo para gerenciar Squads"""
