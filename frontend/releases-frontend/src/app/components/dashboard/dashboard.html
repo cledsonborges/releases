@@ -24,7 +24,7 @@
     <!-- Navigation Cards -->
     <div class="navigation-section">
       <div class="grid grid-3">
-        <div class="nav-card" (click)="navigateToReleases()">
+        <div class="nav-card" (click)="navigateToReleases()"   *ngIf="isAdmin()">
           <div class="nav-icon">📋</div>
           <h3>Lista de Releases</h3>
           <p>Visualizar todas as releases disponíveis</p>
@@ -54,7 +54,7 @@
           <p>Visualizar relatórios e métricas</p>
         </div>
 
-        <div class="nav-card" (click)="navigateToSquadsParticipantes()">
+        <div class="nav-card" (click)="navigateToSquadsParticipantes()"  *ngIf="isAdmin()">
           <div class="nav-icon">👥</div>
           <h3>Gerenciar Squads</h3>
           <p>Gerenciar status dos squads participantes</p>
@@ -63,7 +63,7 @@
     </div>
 
     <!-- Dashboard Summary -->
-    <div class="summary-section" *ngIf="dashboardData">
+    <div class="summary-section"  *ngIf="isAdmin()">
       <h2>Resumo do Sistema</h2>
       <div class="grid grid-4">
         <div class="summary-card">
@@ -157,7 +157,7 @@
     </div>
 
     <!-- API Status -->
-    <div class="api-status-section">
+    <div class="api-status-section"   *ngIf="isAdmin()">
       <h3>Status da API</h3>
       <div class="api-status">
         <span class="status-indicator" [class]="apiConnected ? 'connected' : 'disconnected'">
