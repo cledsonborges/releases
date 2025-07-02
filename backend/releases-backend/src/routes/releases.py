@@ -386,3 +386,47 @@ def check_sla_status(release_id):
             'error': str(e)
         }), 500
 
+@releases_bp.route('/releases/<release_id>/squads/<squad_nome>/status', methods=['PUT'])
+def update_squad_participante_status(release_id, squad_nome):
+    """Atualiza o status de uma squad participante específica"""
+    try:
+        data = request.get_json()
+        
+        # Validar dados de entrada
+        allowed_fields = ['responsavel', 'status']
+        update_data = {k: v for k, v in data.items() if k in allowed_fields}
+        
+        if not update_data:
+            return jsonify({
+                'success': False,
+                'error': 'Nenhum campo válido para atualização'
+            }), 400
+        
+        # Validar status se fornecido
+        if 'status' in update_data:
+            valid_statuses = ['Não iniciado', 'em andamento', 'finalizado', 'finalizado com bugs']
+            if update_data['status'] not in valid_statuses:
+                return jsonify({
+                    'success': False,
+                    'error': f'Status inválido. Valores permitidos: {valid_statuses}'
+                }), 400
+        
+        success = release_model.update_squad_participante_status(release_id, squad_nome, update_data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Status da squad atualizado com sucesso'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Erro ao atualizar status da squad ou squad não encontrada'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
