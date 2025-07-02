@@ -733,18 +733,18 @@ export class SquadsParticipantesComponent implements OnInit {
     }
   }
 
-  getEditKey(releaseId: string, squadNome: string): string {
-    return `${releaseId}-${squadNome}`;
+  getEditKey(releaseId: string, squadId: string): string {
+    return `${releaseId}-${squadId}`;
   }
 
-  isEditing(releaseId: string, squadNome: string): boolean {
-    return this.editingSquads.has(this.getEditKey(releaseId, squadNome));
+  isEditing(releaseId: string, squadId: string): boolean {
+    return this.editingSquads.has(this.getEditKey(releaseId, squadId));
   }
 
-  startEdit(releaseId: string, squadNome: string) {
-    const editKey = this.getEditKey(releaseId, squadNome);
+  startEdit(releaseId: string, squadId: string) {
+    const editKey = this.getEditKey(releaseId, squadId);
     const release = this.releases.find(r => r.release_id === releaseId);
-    const squad = release?.squads_participantes?.find(s => s.nome === squadNome);
+    const squad = release?.squads_participantes?.find(s => s.squad_id === squadId);
     
     if (squad) {
       // Salvar dados originais para cancelamento
@@ -753,13 +753,13 @@ export class SquadsParticipantesComponent implements OnInit {
     }
   }
 
-  cancelEdit(releaseId: string, squadNome: string) {
-    const editKey = this.getEditKey(releaseId, squadNome);
+  cancelEdit(releaseId: string, squadId: string) {
+    const editKey = this.getEditKey(releaseId, squadId);
     const originalData = this.originalSquadData.get(editKey);
     
     if (originalData) {
       const release = this.releases.find(r => r.release_id === releaseId);
-      const squad = release?.squads_participantes?.find(s => s.nome === squadNome);
+      const squad = release?.squads_participantes?.find(s => s.squad_id === squadId);
       
       if (squad) {
         // Restaurar dados originais
@@ -786,7 +786,7 @@ export class SquadsParticipantesComponent implements OnInit {
       status: squad.status
     };
 
-    this.apiService.updateSquadParticipanteStatus(releaseId, encodeURIComponent(squad.nome), updateData).subscribe({
+    this.apiService.updateSquadParticipanteStatus(releaseId, squad.squad_id!, updateData).subscribe({
       next: (response) => {
         if (response.success) {
           this.editingSquads.delete(editKey);
@@ -813,8 +813,8 @@ export class SquadsParticipantesComponent implements OnInit {
     return release.release_id || index.toString();
   }
 
-  trackBySquadNome(index: number, squad: SquadParticipante): string {
-    return squad.nome;
+  trackBySquadId(index: number, squad: SquadParticipante): string {
+    return squad.squad_id || index.toString();
   }
 
   goBack() {
