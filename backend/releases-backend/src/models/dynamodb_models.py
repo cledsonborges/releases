@@ -206,7 +206,8 @@ class ReleaseModel(DynamoDBModel):
                     if 'status' in update_data:
                         # Validar status
                         valid_statuses = ["Não iniciado", "Em andamento", "Concluído", "Concluído com bugs"]
-                        if update_data["status"] in valid_statuses:                            squad['status'] = update_data['status']
+                        if update_data["status"] in valid_statuses:
+                            squad["status"] = update_data["status"]
                     updated = True
                     break
             
