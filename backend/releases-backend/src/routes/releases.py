@@ -386,8 +386,8 @@ def check_sla_status(release_id):
             'error': str(e)
         }), 500
 
-@releases_bp.route('/releases/<release_id>/squads/<squad_nome>/status', methods=['PUT'])
-def update_squad_participante_status(release_id, squad_nome):
+@releases_bp.route("/releases/<release_id>/squads/<squad_id>/status", methods=["PUT"])
+def update_squad_participante_status(release_id, squad_id):
     """Atualiza o status de uma squad participante específica"""
     try:
         data = request.get_json()
@@ -411,8 +411,7 @@ def update_squad_participante_status(release_id, squad_nome):
                     'error': f'Status inválido. Valores permitidos: {valid_statuses}'
                 }), 400
         
-        success = release_model.update_squad_participante_status(release_id, squad_nome, update_data)
-        
+        success = release_model.update_squad_participante_status(release_id, squad_id, update_data)
         if success:
             return jsonify({
                 'success': True,
