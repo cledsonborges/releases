@@ -128,7 +128,11 @@ export class AdminPanelComponent implements OnInit {
     // Preparar dados da release
     const releaseData: Partial<Release> = {
       ...this.newRelease,
-      squads_participantes: this.selectedSquads,
+      squads_participantes: this.selectedSquads.map(squad => ({
+        nome: squad,
+        responsavel: '',
+        status: 'Não iniciado'
+      })),
       squad: this.selectedSquads[0], // Primeira squad como principal para compatibilidade
       liberado_em: new Date().toISOString(),
       sla_status: 'stopped'
