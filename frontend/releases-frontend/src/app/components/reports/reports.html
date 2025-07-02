@@ -1,1 +1,66 @@
-<p>reports works!</p>
+<div class="reports-container">
+  <mat-card class="report-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>assessment</mat-icon>
+        Relatório de Squads que Não Testaram
+      </mat-card-title>
+      <mat-card-subtitle>
+        Lista de squads que não iniciaram os testes em releases específicas
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="actions-bar">
+        <button mat-raised-button color="primary" (click)="loadNotTestedReport()" [disabled]="loading">
+          <mat-icon>refresh</mat-icon>
+          Atualizar Dados
+        </button>
+        
+        <button mat-raised-button color="accent" (click)="exportToCSV()" [disabled]="notTestedReport.length === 0">
+          <mat-icon>download</mat-icon>
+          Exportar CSV
+        </button>
+      </div>
+
+      <div class="loading-container" *ngIf="loading">
+        <p>Carregando dados...</p>
+      </div>
+
+      <div class="table-container" *ngIf="!loading">
+        <table mat-table [dataSource]="notTestedReport" class="mat-elevation-z8">
+          
+          <ng-container matColumnDef="release_name">
+            <th mat-header-cell *matHeaderCellDef>Release</th>
+            <td mat-cell *matCellDef="let element">{{element.release_name}}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="squad_name">
+            <th mat-header-cell *matHeaderCellDef>Squad</th>
+            <td mat-cell *matCellDef="let element">{{element.squad_name}}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let element">
+              <span class="status-badge status-not-started">{{element.status}}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <div class="no-data" *ngIf="notTestedReport.length === 0 && !loading">
+          <mat-icon>info</mat-icon>
+          <p>Nenhuma squad encontrada que não tenha testado em releases.</p>
+        </div>
+      </div>
+
+      <div class="summary" *ngIf="notTestedReport.length > 0">
+        <p><strong>Total de registros:</strong> {{notTestedReport.length}}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
