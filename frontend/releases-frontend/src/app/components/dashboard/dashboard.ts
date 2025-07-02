@@ -105,12 +105,16 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToAlpha(): void {
-    this.router.navigate(['/alpha']);
+    this.router.navigate(["/alpha"]);
+  }
+
+  navigateToSquadsParticipantes(): void {
+    this.router.navigate(["/squads-participantes"]);
   }
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(["/login"]);
   }
 
   getStatusClass(status: string): string {
