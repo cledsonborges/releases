@@ -786,7 +786,7 @@ export class SquadsParticipantesComponent implements OnInit {
       status: squad.status
     };
 
-    this.apiService.updateSquadParticipanteStatus(releaseId, squad.nome, updateData).subscribe({
+    this.apiService.updateSquadParticipanteStatus(releaseId, encodeURIComponent(squad.nome), updateData).subscribe({
       next: (response) => {
         if (response.success) {
           this.editingSquads.delete(editKey);
