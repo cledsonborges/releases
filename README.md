@@ -16,7 +16,7 @@ Sistema completo para gerenciamento de releases, controle de SLA e acompanhament
 - Cards de acesso rápido para funcionalidades
 
 ### ⚙️ Painel Administrativo
-- Criação de novas releases
+- Criação de novas releases com campos atualizados (remoção de `status` e `responsavel`, adição de `link_plano_testes`, `qrcode_alpha`, `qrcode_homolog`, `release_exclusiva`)
 - Gerenciamento de squads
 - Inicialização do banco de dados
 - Monitoramento do status do sistema
@@ -40,6 +40,8 @@ Sistema completo para gerenciamento de releases, controle de SLA e acompanhament
 - Acompanhamento de SLAs
 - Relatórios por squad
 - Dashboards visuais
+- **Novo Relatório de Squads**: Identifica squads que não testaram em releases ou que venceram o SLA de 24 horas (status 'Não iniciado' ou 'Em andamento').
+- **Filtros Avançados**: Adicionados filtros por `Squad` e por `Release` para refinar a visualização dos relatórios.
 
 ## 🛠 Tecnologias Utilizadas
 
@@ -186,7 +188,7 @@ FLASK_DEBUG=True
 - Navegação rápida
 
 ### 3. Gerenciamento de Releases
-- Criação com formulário completo
+- Criação com formulário completo e campos atualizados
 - Edição de releases existentes
 - Controle de status
 - Gerenciamento de SLA
@@ -204,6 +206,7 @@ FLASK_DEBUG=True
 - Performance por squad
 - Status de releases
 - Exportação de dados
+- **Relatório de Squads que Não Testaram/Venceram SLA**: Novo relatório detalhado com filtros por squad e release.
 
 ## 🚀 Como Usar a Nova Estrutura Simplificada
 
@@ -346,7 +349,6 @@ Sistema proprietário desenvolvido para uso interno.
 
 **Status**: ✅ Completo e Funcional
 **Versão**: 1.0.0
-**Data**: Junho 2025
-
+**Data**: Julho 2025
 
 
