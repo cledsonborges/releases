@@ -85,8 +85,8 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let squad of release.squads_participantes; trackBy: trackBySquadNome" 
-                        [class.editing]="isEditing(release.release_id!, squad.nome)">
+                    <tr *ngFor="let squad of release.squads_participantes; trackBy: trackBySquadId" 
+                        [class.editing]="isEditing(release.release_id!, squad.squad_id!)">
                       <td class="squad-name">
                         <div class="squad-info">
                           <span class="squad-title">{{ squad.nome }}</span>
@@ -96,16 +96,14 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
                         <input 
                           type="text" 
                           [(ngModel)]="squad.responsavel"
-                          [disabled]="!isEditing(release.release_id!, squad.nome) || saving"
-                          class="input-field"
+                          [disabled]="!isEditing(release.release_id!, squad.squad_id!) || saving"
                           placeholder="Nome do responsável"
                         />
                       </td>
                       <td class="status">
                         <select 
                           [(ngModel)]="squad.status"
-                          [disabled]="!isEditing(release.release_id!, squad.nome) || saving"
-                          class="select-field"
+                          [disabled]="!isEditing(release.release_id!, squad.squad_id!) || saving"
                           [class]="getStatusClass(squad.status)"
                         >
                           <option value="Não iniciado">Não iniciado</option>
@@ -117,15 +115,15 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
                       <td class="actions">
                         <div class="action-buttons">
                           <button 
-                            *ngIf="!isEditing(release.release_id!, squad.nome)"
-                            (click)="startEdit(release.release_id!, squad.nome)"
+                            *ngIf="!isEditing(release.release_id!, squad.squad_id!)"
+                            (click)="startEdit(release.release_id!, squad.squad_id!)"
                             class="edit-button"
                             title="Editar"
                           >
                             ✏️
                           </button>
                           <button 
-                            *ngIf="isEditing(release.release_id!, squad.nome)"
+                            *ngIf="isEditing(release.release_id!, squad.squad_id!)"
                             (click)="saveSquad(release.release_id!, squad)"
                             [disabled]="saving"
                             class="save-button"
@@ -134,8 +132,8 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
                             {{ saving ? '⏳' : '💾' }}
                           </button>
                           <button 
-                            *ngIf="isEditing(release.release_id!, squad.nome)"
-                            (click)="cancelEdit(release.release_id!, squad.nome)"
+                            *ngIf="isEditing(release.release_id!, squad.squad_id!)"
+                            (click)="cancelEdit(release.release_id!, squad.squad_id!)"
                             [disabled]="saving"
                             class="cancel-button"
                             title="Cancelar"
@@ -779,7 +777,7 @@ export class SquadsParticipantesComponent implements OnInit {
     }
 
     this.saving = true;
-    const editKey = this.getEditKey(releaseId, squad.nome);
+    const editKey = this.getEditKey(releaseId, squad.squad_id!);
 
     const updateData = {
       responsavel: squad.responsavel.trim(),
