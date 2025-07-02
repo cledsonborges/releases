@@ -14,31 +14,7 @@ export interface Release {
   release_name: string;
   squad?: string;
   versao_homolog?: string;
-  versao_firebase?: string;
-  responsavel?: string;
-  status: string;
-  descricao?: string;
-  ambiente?: string;
-  sla_start_time?: string;
-  sla_duration_hours?: number;
-  sla_hours?: number; // Alias para sla_duration_hours
-  sla_active?: boolean;
-  sla_status?: string;
-  liberado_em?: string;
-  versao_alpha?: string;
-  link_plano_testes?: string;
-  qrcode_homolog?: string;
-  qrcode_alpha?: string;
-  release_exclusiva?: boolean;
-  squads_participantes?: SquadParticipante[];
-  entregas?: any[];
-  created_at?: string;
-  updated_at?: string;
-  release_notes?: string;
-  detalhe_entrega?: string;
-  modulo?: string;
-  bugs_reportados?: number;
-}
+
 
 export interface SquadParticipante {
   squad_id?: string;
@@ -51,7 +27,7 @@ export interface Squad {
   squad_id?: string;
   squad_name: string;
   modulos?: string[];
-  responsavel?: string;
+
   ativo?: boolean;
   descricao?: string;
   created_at?: string;
