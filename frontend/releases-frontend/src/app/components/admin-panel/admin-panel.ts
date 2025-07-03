@@ -26,13 +26,15 @@ export class AdminPanelComponent implements OnInit {
   selectedSquads: string[] = [];
 
   newRelease: Partial<Release> = {
-    release_name: '',
-    squad: '',
-    versao_homolog: '',
-    versao_firebase: '',
-    responsavel: '',
-    status: 'em andamento',
-    descricao: ''
+    release_name: "",
+    squad: "",
+    versao_homolog: "",
+    versao_firebase: "",
+    descricao: "",
+    link_plano_testes: "",
+    qrcode_alpha: "",
+    qrcode_homolog: "",
+    release_exclusiva: false
   };
 
   constructor(
@@ -89,13 +91,15 @@ export class AdminPanelComponent implements OnInit {
 
   resetForm(): void {
     this.newRelease = {
-      release_name: '',
-      squad: '',
-      versao_homolog: '',
-      versao_firebase: '',
-      responsavel: '',
-      status: 'em andamento',
-      descricao: ''
+      release_name: "",
+      squad: "",
+      versao_homolog: "",
+      versao_firebase: "",
+      descricao: "",
+      link_plano_testes: "",
+      qrcode_alpha: "",
+      qrcode_homolog: "",
+      release_exclusiva: false
     };
     this.selectedSquads = [];
   }
@@ -118,7 +122,7 @@ export class AdminPanelComponent implements OnInit {
 
   createRelease(): void {
     if (!this.newRelease.release_name || this.selectedSquads.length === 0 || !this.newRelease.versao_homolog || 
-        !this.newRelease.versao_firebase || !this.newRelease.responsavel || !this.newRelease.status) {
+        !this.newRelease.versao_firebase) {
       this.showMessage('Por favor, preencha todos os campos obrigatórios e selecione pelo menos uma squad.', 'error');
       return;
     }

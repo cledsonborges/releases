@@ -120,8 +120,8 @@
         <div class="release-card" *ngFor="let release of releases.slice(0, 6)" (click)="navigateToReleaseDetail(release.release_id!)">
           <div class="release-header">
             <h3>{{ release.release_name }}</h3>
-            <span class="status-badge" [class]="getStatusClass(release.status)">
-              {{ release.status }}
+            <span class="status-badge active">
+              Ativo
             </span>
           </div>
           
