@@ -39,20 +39,18 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
       <div *ngIf="!loading && !error && releases.length > 0" class="releases-container">
         <div class="filters">
           <div class="filter-group">
-            <label for="statusFilter">Filtrar por status:</label>
-            <select id="statusFilter" [(ngModel)]="statusFilter" (change)="applyFilters()" class="filter-select">
-              <option value="">Todos os status</option>
-              <option value="Não iniciado">Não iniciado</option>
-              <option value="Em andamento">Em andamento</option>
-              <option value="Concluído">Concluído</option>
-              <option value="Concluído com bugs">Concluído com bugs</option>
+            <label for="releaseFilter">Filtrar por release:</label>
+            <select id="releaseFilter" [(ngModel)]="releaseFilter" (change)="applyFilters()" class="filter-select">
+              <option value="">Todas as releases</option>
+              <option *ngFor="let release of uniqueReleases" [value]="release">{{ release }}</option>
             </select>
           </div>
           <div class="filter-group">
-            <label for="squadFilter">Filtrar por squad:</label>
-            <select id="squadFilter" [(ngModel)]="squadFilter" (change)="applyFilters()" class="filter-select">
-              <option value="">Todas as squads</option>
-              <option *ngFor="let squad of uniqueSquads" [value]="squad">{{ squad }}</option>
+            <label for="plataformaFilter">Filtrar por plataforma:</label>
+            <select id="plataformaFilter" [(ngModel)]="plataformaFilter" (change)="applyFilters()" class="filter-select">
+              <option value="">Todas as plataformas</option>
+              <option value="Android">Android</option>
+              <option value="iOS">iOS</option>
             </select>
           </div>
         </div>
@@ -653,9 +651,9 @@ export class SquadsParticipantesComponent implements OnInit {
   error = '';
   
   // Filtros
-  statusFilter = '';
-  squadFilter = '';
-  uniqueSquads: string[] = [];
+  releaseFilter = '';
+  plataformaFilter = '';
+  uniqueReleases: string[] = [];
   
   // Estado da interface
   expandedReleases = new Set<string>();
@@ -683,7 +681,7 @@ export class SquadsParticipantesComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.releases = response.data;
-          this.extractUniqueSquads();
+          this.extractUniqueReleases();
           this.applyFilters();
         } else {
           this.error = response.error || 'Erro ao carregar releases';
@@ -698,14 +696,14 @@ export class SquadsParticipantesComponent implements OnInit {
     });
   }
 
-  extractUniqueSquads() {
-    const squadsSet = new Set<string>();
+  extractUniqueReleases() {
+    const releasesSet = new Set<string>();
     this.releases.forEach(release => {
-      release.squads_participantes?.forEach(squad => {
-        squadsSet.add(squad.nome);
-      });
+      if (release.release_name) {
+        releasesSet.add(release.release_name);
+      }
     });
-    this.uniqueSquads = Array.from(squadsSet).sort();
+    this.uniqueReleases = Array.from(releasesSet).sort();
   }
 
   applyFilters() {
@@ -717,16 +715,21 @@ export class SquadsParticipantesComponent implements OnInit {
         return false;
       }
       
-      // Filtrar por squads que atendem aos critérios
-      if (this.statusFilter || this.squadFilter) {
-        const hasMatchingSquad = release.squads_participantes?.some(squad => {
-          const statusMatch = !this.statusFilter || squad.status === this.statusFilter;
-          const squadMatch = !this.squadFilter || squad.nome === this.squadFilter;
-          return statusMatch && squadMatch;
-        });
-        return hasMatchingSquad;
+      // Filtrar por release
+      const releaseMatch = !this.releaseFilter || release.release_name === this.releaseFilter;
+      
+      // Filtrar por plataforma (verificar se o nome da release contém Android ou iOS)
+      let plataformaMatch = true;
+      if (this.plataformaFilter) {
+        const releaseName = release.release_name?.toLowerCase() || '';
+        if (this.plataformaFilter === 'Android') {
+          plataformaMatch = releaseName.includes('android');
+        } else if (this.plataformaFilter === 'iOS') {
+          plataformaMatch = releaseName.includes('ios');
+        }
       }
-      return true;
+      
+      return releaseMatch && plataformaMatch;
     });
   }
 
