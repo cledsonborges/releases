@@ -34,7 +34,8 @@ export class AdminPanelComponent implements OnInit {
     link_plano_testes: "",
     qrcode_alpha: "",
     qrcode_homolog: "",
-    release_exclusiva: false
+    release_exclusiva: false,
+    ambiente: ""
   };
 
   constructor(
@@ -99,7 +100,8 @@ export class AdminPanelComponent implements OnInit {
       link_plano_testes: "",
       qrcode_alpha: "",
       qrcode_homolog: "",
-      release_exclusiva: false
+      release_exclusiva: false,
+      ambiente: ""
     };
     this.selectedSquads = [];
   }
@@ -122,7 +124,7 @@ export class AdminPanelComponent implements OnInit {
 
   createRelease(): void {
     if (!this.newRelease.release_name || this.selectedSquads.length === 0 || !this.newRelease.versao_homolog || 
-        !this.newRelease.versao_firebase) {
+        !this.newRelease.versao_firebase || !this.newRelease.ambiente) {
       this.showMessage('Por favor, preencha todos os campos obrigatórios e selecione pelo menos uma squad.', 'error');
       return;
     }
