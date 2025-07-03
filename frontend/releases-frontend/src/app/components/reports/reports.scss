@@ -2,41 +2,59 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  background: #fafbfc;
 }
 
 .report-card {
   margin-bottom: 20px;
+  padding: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
 }
 
-.mat-card-header {
-  margin-bottom: 20px;
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 24px 0 24px;
+  flex-wrap: wrap;
 }
 
-.mat-card-title {
+.header-titles {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 24px;
-  font-weight: 500;
+  gap: 16px;
+  mat-icon {
+    font-size: 36px;
+    color: #133134;
+  }
+  .main-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #222;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-top: 2px;
+    max-width: 600px;
+  }
 }
 
-.mat-card-subtitle {
-  margin-top: 8px;
-  color: #666;
-}
-
-.actions-bar {
+.header-actions {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .filters-section {
-  margin-bottom: 24px;
+  margin: 24px 24px 0 24px;
   padding: 16px;
   background-color: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e9ecef;
 }
 
@@ -57,11 +75,20 @@
 .filter-field {
   min-width: 200px;
   flex: 1;
+  // Deixa o campo arredondado
+  ::ng-deep .mat-form-field-appearance-fill .mat-form-field-outline {
+    border-radius: 8px;
+  }
+  ::ng-deep .mat-form-field-flex {
+    border-radius: 8px;
+    background: #fff;
+  }
 }
 
 .clear-filters-btn {
   height: 56px;
   margin-bottom: 1.25em;
+  border-radius: 8px !important;
 }
 
 .loading-container {
@@ -73,6 +100,7 @@
 .table-container {
   width: 100%;
   overflow-x: auto;
+  padding: 0 24px 0 24px;
 }
 
 .mat-table {
@@ -82,7 +110,7 @@
 
 .mat-header-cell {
   font-weight: 600;
-  color: #333;
+  color: #133134;
   background-color: #f5f5f5;
 }
 
@@ -103,19 +131,16 @@
   color: #c62828;
   border: 1px solid #ffcdd2;
 }
-
 .status-em-andamento {
   background-color: #fffde7;
   color: #fbc02d;
   border: 1px solid #fff9c4;
 }
-
 .status-venceu-sla {
   background-color: #ffcdd2;
   color: #d32f2f;
   border: 1px solid #ef9a9a;
 }
-
 .status-não-venceu-sla {
   background-color: #c8e6c9;
   color: #388e3c;
@@ -127,7 +152,6 @@
   padding: 40px;
   color: #666;
 }
-
 .no-data mat-icon {
   font-size: 48px;
   width: 48px;
@@ -137,48 +161,97 @@
 }
 
 .summary {
-  margin-top: 20px;
+  margin: 20px 24px 0 24px;
   padding: 16px;
   background-color: #f5f5f5;
   border-radius: 4px;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid #133134;
 }
-
 .summary p {
   margin: 0;
   color: #333;
 }
 
-@media (max-width: 768px) {
-  .reports-container {
-    padding: 10px;
-  }
-  
-  .actions-bar {
+@media (max-width: 900px) {
+  .report-header {
     flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px 8px 0 8px;
   }
-  
+  .filters-section {
+    margin: 16px 8px 0 8px;
+  }
+  .table-container {
+    padding: 0 8px 0 8px;
+  }
+  .summary {
+    margin: 16px 8px 0 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-titles .main-title {
+    font-size: 18px;
+  }
+  .header-titles .subtitle {
+    font-size: 13px;
+  }
   .filters-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
-  
-  .filter-field {
-    min-width: unset;
-  }
-  
   .clear-filters-btn {
     height: auto;
     margin-bottom: 0;
     margin-top: 8px;
   }
-  
-  .mat-card-title {
-    font-size: 20px;
-  }
-  
   .table-container {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
+.custom-btn {
+  min-width: 160px;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px #0001;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #133134 !important; // cor primária
+  color: #fff !important;
+  transition: background 0.2s, box-shadow 0.2s;
+
+  mat-icon {
+    font-size: 20px;
+    margin-right: 4px;
+  }
+
+  &:hover:not([disabled]) {
+    background: #133134 !important;
+    box-shadow: 0 4px 16px #1976d233;
+  }
+
+  &[color="accent"] {
+    background: #133134 !important;
+    &:hover:not([disabled]) {
+      background: #133134!important;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
