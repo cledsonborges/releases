@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { ApiService, Release, SquadParticipante } from '../../services/api.service';
 
 @Component({
-  selector: 'app-squads-participantes',
+  selector: 'app-squads-alpha',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
@@ -14,7 +14,7 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
         <button class="back-button" (click)="goBack()">
           ← Voltar
         </button>
-        <h1>Homologação</h1>
+        <h1>Testes Alpha</h1>
         <button class="refresh-button" (click)="loadReleases()" [disabled]="loading">
           🔄 Atualizar
         </button>
@@ -645,7 +645,7 @@ import { ApiService, Release, SquadParticipante } from '../../services/api.servi
     }
   `]
 })
-export class SquadsParticipantesComponent implements OnInit {
+export class SquadsAlphaComponent implements OnInit {
   releases: Release[] = [];
   filteredReleases: Release[] = [];
   loading = false;
@@ -710,10 +710,10 @@ export class SquadsParticipantesComponent implements OnInit {
 
   applyFilters() {
     this.filteredReleases = this.releases.filter(release => {
-      // Filtrar apenas releases do ambiente homolog (ou sem ambiente definido para compatibilidade)
-      const isHomologRelease = release.ambiente === 'homolog' || !release.ambiente;
+      // Filtrar apenas releases do ambiente alpha
+      const isAlphaRelease = release.ambiente === 'alpha';
       
-      if (!isHomologRelease) {
+      if (!isAlphaRelease) {
         return false;
       }
       
