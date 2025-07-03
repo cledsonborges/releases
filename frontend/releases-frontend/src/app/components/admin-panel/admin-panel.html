@@ -159,6 +159,20 @@
               />
             </div>
             
+            <div class="form-group">
+              <label for="ambiente">Ambiente *</label>
+              <select
+                id="ambiente"
+                name="ambiente"
+                [(ngModel)]="newRelease.ambiente"
+                required
+              >
+                <option value="">Selecione o ambiente</option>
+                <option value="homolog">Homolog</option>
+                <option value="alpha">Alpha</option>
+              </select>
+            </div>
+            
             <div class="form-group full-width">
               <label for="description">Descrição</label>
               <textarea
