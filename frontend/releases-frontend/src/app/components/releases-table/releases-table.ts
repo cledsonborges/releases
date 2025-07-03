@@ -97,14 +97,11 @@ export class ReleasesTableComponent implements OnInit {
         (release.ambiente === 'homolog' || !release.ambiente) : 
         release.ambiente === 'alpha';
       
-      // Filtro por status
-      const matchesStatus = !this.statusFilter || release.status === this.statusFilter;
-      
       // Filtro por release
       const matchesRelease = !this.releaseFilter || 
         (release.release_name && release.release_name.toLowerCase().includes(this.releaseFilter.toLowerCase()));
       
-      return matchesView && matchesStatus && matchesRelease;
+      return matchesView && matchesRelease;
     });
   }
 

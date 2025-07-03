@@ -107,8 +107,6 @@
               <th>Squad</th>
               <th>Versão Homolog</th>
               <th>Versão Firebase</th>
-              <th>Responsável</th>
-              <th>Status</th>
               <th>Criado em</th>
               <th *ngIf="canEdit()">Ações</th>
             </tr>
@@ -170,41 +168,9 @@
                 />
               </td>
               
-              <!-- Responsável -->
-              <td>
-                <span *ngIf="editingReleaseId !== release.release_id || editingField !== 'responsavel'">
-                  {{ release.responsavel || '-' }}
-                </span>
-                <input 
-                  *ngIf="editingReleaseId === release.release_id && editingField === 'responsavel'"
-                  type="text"
-                  [(ngModel)]="editingValue"
-                  class="edit-input"
-                  (keyup.enter)="saveEdit()"
-                  (keyup.escape)="cancelEdit()"
-                />
-              </td>
+
               
-              <!-- Status -->
-              <td>
-                <span 
-                  *ngIf="editingReleaseId !== release.release_id || editingField !== 'status'"
-                  class="status-badge"
-                  [class]="getStatusClass(release.status || '')"
-                >
-                  {{ release.status || 'Não definido' }}
-                </span>
-                <select 
-                  *ngIf="editingReleaseId === release.release_id && editingField === 'status'"
-                  [(ngModel)]="editingValue"
-                  class="edit-select"
-                  (change)="saveEdit()"
-                >
-                  <option *ngFor="let status of statusOptions" [value]="status">
-                    {{ status }}
-                  </option>
-                </select>
-              </td>
+
               
               <!-- Data de Criação -->
               <td class="date-cell">
@@ -218,8 +184,8 @@
                   <button 
                     *ngIf="editingReleaseId !== release.release_id"
                     class="btn-icon edit-btn" 
-                    (click)="startEdit(release.release_id!, 'status', release.status || '')"
-                    title="Editar Status"
+                    (click)="startEdit(release.release_id!, 'release_name', release.release_name || '')"
+                    title="Editar Release"
                   >
                     ✏️
                   </button>

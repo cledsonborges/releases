@@ -15,8 +15,7 @@ export interface Release {
   squad?: string;
   versao_homolog?: string;
   versao_firebase?: string;
-  responsavel?: string;
-  status: string;
+
   descricao?: string;
   ambiente?: string;
   sla_start_time?: string;
